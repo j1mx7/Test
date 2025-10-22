@@ -2741,46 +2741,35 @@ class ToastNotification(QtWidgets.QFrame):
         return pixmap
 
     def show_toast(self, parent_widget):
-        """Show toast at top-right with slide-down animation"""
-        # Position at top-right of parent (below custom title bar)
+        """Show toast with slide-up animation"""
+        # Position at bottom center of parent
         parent_rect = parent_widget.geometry()
-        
-        # Title bar height + margins
-        title_bar_height = 40
-        top_margin = 16
-        right_margin = 16
-        
-        # Final position (top-right, below title bar)
-        final_x = parent_rect.right() - self.width() - right_margin
-        final_y = parent_rect.top() + title_bar_height + top_margin
+        parent_center_x = parent_rect.center().x()
+        parent_bottom_y = parent_rect.bottom()
 
-        # Start position (above screen for slide-down)
-        start_x = final_x
-        start_y = parent_rect.top() - self.height()
+        # Start position (below screen)
+        start_x = parent_center_x - self.width() // 2
+        start_y = parent_bottom_y
+
+        # End position (visible, 60px from bottom)
+        end_x = start_x
+        end_y = parent_bottom_y - self.height() - 60
 
         self.move(start_x, start_y)
         self.show()
 
         # Fade in
         self.fade_anim.setStartValue(0.0)
-        self.fade_anim.setEndValue(0.96)  # Slightly transparent
+        self.fade_anim.setEndValue(1.0)
         self.fade_anim.start()
 
-        # Slide down
+        # Slide up
         self.slide_anim.setStartValue(QtCore.QPoint(start_x, start_y))
-        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(end_x, end_y))
         self.slide_anim.start()
 
     def hide_toast(self):
-        """Hide toast with slide-up and fade-out animation"""
-        # Slide up slightly while fading
-        current_pos = self.pos()
-        self.slide_anim.setStartValue(current_pos)
-        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 20))
-        self.slide_anim.setDuration(200)
-        self.slide_anim.start()
-        
-        # Fade out
+        """Hide toast with fade-out animation"""
         self.fade_anim.setStartValue(self.windowOpacity())
         self.fade_anim.setEndValue(0.0)
         self.fade_anim.finished.connect(self.deleteLater)
@@ -2912,7 +2901,7 @@ class NotificationManager(QtCore.QObject):
         self._last_messages[key] = now
         return True
 
-    def notify_success(self, text: str, duration_ms: int = 3500, subtitle: str = None):
+    def notify_success(self, text: str, duration_ms: int = 2200, subtitle: str = None):
         """Show success toast (no action buttons)"""
         if not self._should_show(text):
             return
@@ -4620,7 +4609,18 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.notifications.notify_error(f"Failed to create nvram_tuned.txt: {e}")
             return
 
-        # Disable import button and show progress (confirmation already done above)
+        # Confirmation dialog (safety)
+        reply = QtWidgets.QMessageBox.question(
+            self, "Confirm BIOS Import",
+            f"Import settings from:\n{self.current_path.name}\n\nThis will modify your BIOS settings. Continue?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            self.status("Import cancelled.")
+            return
+
+        # Disable import button and show progress
         self.btn_import.setEnabled(False)
         self.btn_import.setText("Importing...")
         self._current_scewin_operation = "import"
@@ -4893,13 +4893,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 combined.update(basic_map.get(name, {}))
 
         order, adv_map, enabled_map = self._current_adv_map()
-        
-        # GUARD: Ensure correct family data is used
-        if self._preset_family == "amd":
-            assert adv_map is AMD_PRESETS_ADV, "AMD family must use AMD_PRESETS_ADV"
-        else:
-            assert adv_map is INTEL_PRESETS_ADV, "Intel family must use INTEL_PRESETS_ADV"
-        
         for name in order:
             if enabled_map.get(name):
                 combined.update(adv_map.get(name, {}))
@@ -5086,49 +5079,19 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
             return
-        
-        # Track which presets are being applied
-        active_presets = []
         if self.pending_targets:
-            # Get active basic presets
-            for name in PRESET_ORDER_BASIC:
-                if self._enabled_basic.get(name):
-                    active_presets.append(name)
-            
-            # Get active advanced presets
-            order, _, enabled_map = self._current_adv_map()
-            for name in order:
-                if enabled_map.get(name):
-                    family_label = "AMD" if self._preset_family == "amd" else "Intel"
-                    active_presets.append(f"{family_label} {name}")
-            
             ch = self._apply_targets_now()
             self.status(f"Preset staged {ch} change(s).")
-        
         cnt = self.model.apply_staged()
         self.update_counts()
-        
-        # Enhanced status and notification
+        self.status(f"Applied {cnt} change(s).")
+
+        # Show toast notification with change count
         if cnt == 0:
-            self.status("No changes to apply.")
             self.notifications.notify_info("No changes to apply", duration_ms=2500)
         else:
             change_word = "change" if cnt == 1 else "changes"
-            
-            # Build status message with preset info
-            if active_presets:
-                preset_list = ", ".join(active_presets[:3])  # Show first 3
-                if len(active_presets) > 3:
-                    preset_list += f" +{len(active_presets) - 3} more"
-                self.status(f"Applied {cnt} {change_word}: {preset_list}")
-                self.notifications.notify_success(
-                    f"Applied {cnt} {change_word}",
-                    subtitle=preset_list if len(preset_list) < 50 else None,
-                    duration_ms=3500
-                )
-            else:
-                self.status(f"Applied {cnt} {change_word}.")
-                self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=3500)
+            self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=2500)
 
     def reset_config(self) -> None:
         """Full app reset: settings, presets, search, filters, counters"""
