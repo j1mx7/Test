@@ -3903,10 +3903,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Enable presets on the right to preview settings here",
+            "Use the toggles on the right to show preset settings.",
             alignment=Qt.AlignCenter
         )
-        self.preset_placeholder.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; padding: 40px;")
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -3926,34 +3925,26 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Section header with better styling
-        lbl = QtWidgets.QLabel("Preset Configuration")
-        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']}; padding-bottom: 4px;")
+        lbl = QtWidgets.QLabel("Preset tools")
 
         # Family switch row (no errors on toggle)
         self.familySwitch = ToggleSwitch()
         self.familySwitch.setObjectName("familySwitch")
         self.familySwitch.setChecked(False)  # Intel default
         self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
-        self.familyLabel.setStyleSheet(f"font-size: 14px; font-weight: 500; color: {THEME['text']};")
         self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
-        # CPU Family selector with clear label
-        cpu_family_label = QtWidgets.QLabel("CPU Family:")
-        cpu_family_label.setStyleSheet(f"font-size: 13px; color: {THEME['muted']}; font-weight: 500;")
-        
         topCenter = QtWidgets.QHBoxLayout()
-        topCenter.setContentsMargins(0, 8, 0, 8)
-        topCenter.setSpacing(12)
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
         topCenter.addStretch(1)
-        topCenter.addWidget(cpu_family_label, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
         topCenter.addStretch(1)
         centerRow = QtWidgets.QWidget()
         centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet(f"background: transparent; border: 1px solid {THEME['input_border']}; border-radius: 8px; padding: 4px 0;")
+        centerRow.setStyleSheet("background: transparent; border: none;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4030,23 +4021,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right panel with better structure
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
         rw.addWidget(lbl)
-        
-        # Divider line
-        divider1 = QtWidgets.QFrame()
-        divider1.setFrameShape(QtWidgets.QFrame.HLine)
-        divider1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider1)
-        
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        
-        # Another subtle divider
-        divider2 = QtWidgets.QFrame()
-        divider2.setFrameShape(QtWidgets.QFrame.HLine)
-        divider2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider2)
-        
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4062,7 +4039,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
-        self.lbl_page_title.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {THEME['text']};")
 
         self.btn_page_right = QtWidgets.QPushButton(">")
         self.btn_page_right.setObjectName("presetNavButton")
