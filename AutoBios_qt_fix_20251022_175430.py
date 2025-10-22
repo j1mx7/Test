@@ -2592,11 +2592,6 @@ class ToastNotification(QtWidgets.QFrame):
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setObjectName("ToastBubble")
         self.setAutoFillBackground(False)
-        
-        # Setup opacity effect for fade animations
-        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self._opacity_effect)
-        self._opacity_effect.setOpacity(1.0)
 
         # Unified rounded toast styling - matches all toasts
         self.setStyleSheet(f"""
@@ -2702,7 +2697,7 @@ class ToastNotification(QtWidgets.QFrame):
         self.adjustSize()
 
         # Animations
-        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
         self.fade_anim.setDuration(200)
         self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
@@ -2765,7 +2760,6 @@ class ToastNotification(QtWidgets.QFrame):
 
         self.move(start_x, start_y)
         self.show()
-        self._opacity_effect.setOpacity(0.0)  # Start fully transparent
 
         # Fade in
         self.fade_anim.setStartValue(0.0)
@@ -2787,7 +2781,7 @@ class ToastNotification(QtWidgets.QFrame):
         self.slide_anim.start()
         
         # Fade out
-        self.fade_anim.setStartValue(self._opacity_effect.opacity())
+        self.fade_anim.setStartValue(self.windowOpacity())
         self.fade_anim.setEndValue(0.0)
         self.fade_anim.finished.connect(self.deleteLater)
         self.fade_anim.start()
@@ -4367,8 +4361,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 background: transparent;
             }}
             QLineEdit:focus, QLineEdit#searchInput:focus {{
-                border: 2px solid {t['input_focus']};
+                border: 1px solid {t['input_focus']};
                 background: transparent;
+                outline: 1px solid {t['input_focus']};
+                outline-offset: -2px;
             }}
 
             /* Tables with hover effects */
