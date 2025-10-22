@@ -4136,7 +4136,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         fam_title.setStyleSheet(f'font-size:16px;font-weight:600;color:{THEME["text"]}')
         left_lo.addWidget(fam_title)
         self.fam_list = QtWidgets.QListWidget()
-        self.fam_list.setStyleSheet(f'QListWidget{background:transparent;border:none}QListWidget::item{padding:12px 8px;border-bottom:2px solid transparent;color:{THEME["muted"]}}QListWidget::item:selected{background:transparent;color:{THEME["text"]};border-bottom:2px solid {THEME["accent"]}}')
+        self.fam_list.setStyleSheet(f'QListWidget{{background:transparent;border:none}}QListWidget::item{{padding:12px 8px;border-bottom:2px solid transparent;color:{THEME["muted"]}}}QListWidget::item:selected{{background:transparent;color:{THEME["text"]};border-bottom:2px solid {THEME["accent"]}}}')
         for f in ['Basic', 'Advanced']: self.fam_list.addItem(f)
         left_lo.addWidget(self.fam_list)
         left_lo.addStretch()
@@ -4171,7 +4171,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.cpu_amd_btn = QtWidgets.QPushButton('AMD')
         for b in [self.cpu_intel_btn, self.cpu_amd_btn]:
             b.setCheckable(True)
-            b.setStyleSheet(f'QPushButton{background:transparent;border:1px solid {THEME["input_border"]};padding:6px 16px;color:{THEME["muted"]}}QPushButton:checked{background:{THEME["accent"]};color:white}')
+            b.setStyleSheet(f'QPushButton{{background:transparent;border:1px solid {THEME["input_border"]};padding:6px 16px;color:{THEME["muted"]}}}QPushButton:checked{{background:{THEME["accent"]};color:white}}')
         self.cpu_intel_btn.setStyleSheet(self.cpu_intel_btn.styleSheet() + 'border-radius:12px 0 0 12px')
         self.cpu_amd_btn.setStyleSheet(self.cpu_amd_btn.styleSheet() + 'border-radius:0 12px 12px 0')
         cpu_lo.addWidget(self.cpu_intel_btn)
