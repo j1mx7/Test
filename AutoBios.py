@@ -2043,7 +2043,7 @@ class ComboOrLineDelegate(QtWidgets.QStyledItemDelegate):
                 border-radius:8px;
                 selection-background-color:{THEME['accent']};
                 selection-color:#ffffff;
-                outline:0;
+                border:0;
             }}
             QComboBox QAbstractItemView::item{{padding:8px;border-radius:4px;}}
             QComboBox QAbstractItemView::item:hover{{background:{THEME['card_hover']};}}
@@ -2601,8 +2601,8 @@ class ToastNotification(QtWidgets.QFrame):
         # Unified rounded toast styling - matches all toasts
         self.setStyleSheet(f"""
             QWidget#ToastBubble {{
-                background: rgba(15, 20, 25, 0.96);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                background: rgba(15, 20, 25, 244);
+                border: 1px solid rgba(255, 255, 255, 15);
                 border-radius: 12px;
                 padding: 0px;
                 margin: 0px;
@@ -3156,7 +3156,7 @@ class NoFileLoadedDialog(QtWidgets.QDialog):
                 border-color: {THEME['input_focus']};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.10);
+                background: rgba(255, 255, 255, 25);
                 border-color: {THEME['accent']};
             }}
         """)
@@ -3182,7 +3182,7 @@ class NoFileLoadedDialog(QtWidgets.QDialog):
                 border-color: {THEME['input_focus']};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.10);
+                background: rgba(255, 255, 255, 25);
                 border-color: {THEME['accent']};
             }}
         """)
@@ -3394,7 +3394,7 @@ class OutlineConfirmDialog(QtWidgets.QDialog):
                 border-radius: 10px; padding: 8px 20px; color: {THEME['text']}; font-size: 14px;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
-            QPushButton:pressed {{ background: rgba(255, 255, 255, 0.10); border-color: {THEME['accent']}; }}
+            QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
         """)
         self.cancel_btn.clicked.connect(self.reject)
         self.cancel_btn.setCursor(Qt.PointingHandCursor)
@@ -3410,7 +3410,7 @@ class OutlineConfirmDialog(QtWidgets.QDialog):
                 font-size: 14px; font-weight: 500;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['accent_hover']}; }}
-            QPushButton:pressed {{ background: rgba(74, 144, 226, 0.15); border-color: {THEME['accent']}; }}
+            QPushButton:pressed {{ background: rgba(74, 144, 226, 38); border-color: {THEME['accent']}; }}
         """)
         self.confirm_btn.clicked.connect(self.accept)
         self.confirm_btn.setCursor(Qt.PointingHandCursor)
@@ -3497,10 +3497,10 @@ class CustomTitleBar(QtWidgets.QWidget):
                 margin-right: 8px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 30);
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.22);
+                background: rgba(255, 255, 255, 56);
             }}
         """
 
@@ -3536,10 +3536,10 @@ class CustomTitleBar(QtWidgets.QWidget):
                 margin-right: 0px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 80, 80, 0.15);
+                background: rgba(255, 80, 80, 38);
             }}
             QPushButton:pressed {{
-                background: rgba(255, 80, 80, 0.25);
+                background: rgba(255, 80, 80, 63);
             }}
         """
         self.close_btn = QtWidgets.QPushButton()
@@ -3999,17 +3999,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Enable preset toggles on the right to preview settings",
+            "Use the toggles on the right to show preset settings.",
             alignment=Qt.AlignCenter
         )
-        self.preset_placeholder.setStyleSheet(f"""
-            QLabel {{
-                color: {THEME['muted']};
-                font-size: 13px;
-                padding: 60px 20px;
-                background: transparent;
-            }}
-        """)
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -4029,35 +4021,27 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Premium card header
-        lbl = QtWidgets.QLabel("Preset Configuration")
-        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']}; margin-bottom: 4px;")
+        lbl = QtWidgets.QLabel("Preset tools")
+        lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px; font-weight: 500;")
 
-        # CPU Family selector - Clean and clear
-        cpu_label = QtWidgets.QLabel("CPU Family:")
-        cpu_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; font-weight: 500;")
-        
+        # Family switch row
         self.familySwitch = ToggleSwitch()
         self.familySwitch.setObjectName("familySwitch")
-        self.familySwitch.setChecked(False)  # Intel default (off=Intel, on=AMD)
-        
+        self.familySwitch.setChecked(False)  # Intel default
         self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
-        self.familyLabel.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600;")
         self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
         topCenter = QtWidgets.QHBoxLayout()
-        topCenter.setContentsMargins(8, 8, 8, 8)
-        topCenter.setSpacing(12)
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
         topCenter.addStretch(1)
-        topCenter.addWidget(cpu_label, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
         topCenter.addStretch(1)
-        
         centerRow = QtWidgets.QWidget()
         centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet(f"background: transparent; border: 1px solid {THEME['input_border']}; border-radius: 8px; padding: 0;")
+        centerRow.setStyleSheet("background: transparent; border: none;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4134,23 +4118,11 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right panel with professional spacing
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right panel
         rw.addWidget(lbl)
-        
-        # Subtle divider after title
-        div1 = QtWidgets.QFrame()
-        div1.setFrameShape(QtWidgets.QFrame.HLine)
-        div1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(div1)
-        
+        rw.addSpacing(8)
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        
-        # Divider after CPU selector
-        div2 = QtWidgets.QFrame()
-        div2.setFrameShape(QtWidgets.QFrame.HLine)
-        div2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(div2)
-        
+        rw.addSpacing(12)
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4160,17 +4132,16 @@ class AutoBiosWindow(QtWidgets.QWidget):
         nav_layout.setSpacing(16)
         nav_layout.setAlignment(Qt.AlignCenter)
 
-        self.btn_page_left = QtWidgets.QPushButton("‹")
+        self.btn_page_left = QtWidgets.QPushButton("<")
         self.btn_page_left.setObjectName("presetNavButton")
         self.btn_page_left.setCursor(Qt.PointingHandCursor)
-        self.btn_page_left.setFixedSize(36, 36)
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
         self.lbl_page_title.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600; min-width: 100px;")
         self.lbl_page_title.setAlignment(Qt.AlignCenter)
 
-        self.btn_page_right = QtWidgets.QPushButton("›")
+        self.btn_page_right = QtWidgets.QPushButton(">")
         self.btn_page_right.setObjectName("presetNavButton")
         self.btn_page_right.setCursor(Qt.PointingHandCursor)
         self.btn_page_right.setFixedSize(36, 36)
@@ -4511,7 +4482,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 border:1px solid {t['border']};
                 border-radius:12px;
                 selection-background-color:{t['selection']};
-                outline:0;
+                border:0;
                 padding:0px 0px 8px 0px;
             }}
             QTableView#cardTable::item {{
@@ -4535,7 +4506,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 border:1px solid {t['border']};
                 border-radius:12px;
                 selection-background-color:{t['selection']};
-                outline:0;
+                border:0;
                 padding:0px 0px 8px 0px;
             }}
             QTableView#presetListTable::item {{
@@ -4568,7 +4539,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 border-color: {t['input_focus']}; 
             }}
             QPushButton:pressed {{ 
-                background: rgba(255, 255, 255, 0.10); 
+                background: rgba(255, 255, 255, 25); 
                 border-color: {t['accent']}; 
             }}
             QPushButton:disabled {{ 
