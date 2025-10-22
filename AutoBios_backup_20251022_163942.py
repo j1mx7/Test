@@ -3196,11 +3196,11 @@ class CustomTitleBar(QtWidgets.QWidget):
 
         layout.addStretch()
 
-        # Window control buttons - outline style with 1px border, transparent fill
+        # Window control buttons - premium styling with 8px gaps
         btn_style_base = f"""
             QPushButton {{
                 background: transparent;
-                border: 1px solid {THEME['input_border']};
+                border: none;
                 border-radius: 6px;
                 padding: 0;
                 min-width: 40px;
@@ -3210,12 +3210,10 @@ class CustomTitleBar(QtWidgets.QWidget):
                 margin-right: 8px;
             }}
             QPushButton:hover {{
-                background: transparent;
-                border-color: {THEME['input_focus']};
+                background: rgba(255, 255, 255, 0.06);
             }}
             QPushButton:pressed {{
                 background: rgba(255, 255, 255, 0.10);
-                border-color: {THEME['accent']};
             }}
         """
 
@@ -3237,11 +3235,11 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.max_btn.setCursor(Qt.PointingHandCursor)
         layout.addWidget(self.max_btn)
 
-        # Close button with outline style and red hover
+        # Close button with premium SVG and red hover
         close_style = f"""
             QPushButton {{
                 background: transparent;
-                border: 1px solid {THEME['input_border']};
+                border: none;
                 border-radius: 6px;
                 padding: 0;
                 min-width: 40px;
@@ -3251,12 +3249,10 @@ class CustomTitleBar(QtWidgets.QWidget):
                 margin-right: 0px;
             }}
             QPushButton:hover {{
-                background: transparent;
-                border-color: {THEME['error']};
+                background: rgba(255, 80, 80, 0.18);
             }}
             QPushButton:pressed {{
-                background: rgba(255, 80, 80, 0.10);
-                border-color: {THEME['error']};
+                background: rgba(255, 60, 60, 0.25);
             }}
         """
         self.close_btn = QtWidgets.QPushButton()
@@ -3758,6 +3754,11 @@ class AutoBiosWindow(QtWidgets.QWidget):
         centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
         centerRow.setStyleSheet("background: transparent; border: none;")
+
+        # Clear list (first)
+        self.btn_clear = QtWidgets.QPushButton("Clear list")
+        self.btn_clear.setMinimumHeight(40)
+
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -3834,9 +3835,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
+        self.familySwitch.toggled.connect(self._on_family_switch)
+        self.btn_clear.clicked.connect(self.clear_preset_list)
+
+        # Layout right
         rw.addWidget(lbl)
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
+        rw.addWidget(self.btn_clear)
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4142,33 +4147,17 @@ class AutoBiosWindow(QtWidgets.QWidget):
             }}
             QLabel#counts {{ color:{t['muted']}; font-size:13px; }}
 
-            /* Top tabs - outline style with transparent fill and thin underline indicator */
+            /* Top tabs with hover */
             QTabBar#topTabs {{ qproperty-drawBase:0; background:transparent; }}
-            QTabBar#topTabs::tab {{ 
-                background: transparent; 
-                color: {t['muted']}; 
-                padding: 14px 24px; 
-                margin: 0 8px;
-                border: 1px solid {t['input_border']}; 
-                border-radius: 12px; 
-                font-weight: 500; 
-                font-size: 14px; 
-            }}
-            QTabBar#topTabs::tab:hover {{ 
-                background: transparent; 
-                border-color: {t['input_focus']}; 
-            }}
-            QTabBar#topTabs::tab:selected {{ 
-                background: transparent; 
-                color: {t['text']}; 
-                border: 1px solid {t['input_focus']};
-                border-bottom: 2px solid {t['accent']};
-            }}
+            QTabBar#topTabs::tab {{ background:{t['card']}; color:{t['muted']}; padding:14px 24px; margin:0 8px;
+                                     border:1px solid {t['border']}; border-radius:12px; font-weight:500; font-size:14px; }}
+            QTabBar#topTabs::tab:hover {{ background:{t['card_hover']}; border-color:{t['input_border']}; }}
+            QTabBar#topTabs::tab:selected {{ background:{t['tab_selected']}; color:{t['text']}; border-color:{t['input_focus']};d}}
 
-            /* Search input - outline style with transparent fill */
+            /* Search input with visible color block */
             QLineEdit, QLineEdit#searchInput {{
-                background: transparent;
-                border: 1px solid {t['input_border']};
+                background: {t['card']};
+                border: 2px solid {t['input_border']};
                 border-radius: 12px;
                 padding: 12px 18px;
                 color: {t['text']};
@@ -4177,13 +4166,11 @@ class AutoBiosWindow(QtWidgets.QWidget):
             }}
             QLineEdit:hover, QLineEdit#searchInput:hover {{
                 border-color: {t['input_focus']};
-                background: transparent;
+                background: {t['card_hover']};
             }}
             QLineEdit:focus, QLineEdit#searchInput:focus {{
-                border: 1px solid {t['input_focus']};
-                background: transparent;
-                outline: 1px solid {t['input_focus']};
-                outline-offset: -2px;
+                border: 2px solid {t['input_focus']};
+                background: {t['card_hover']};
             }}
 
             /* Tables with hover effects */
@@ -4235,28 +4222,12 @@ class AutoBiosWindow(QtWidgets.QWidget):
             }}
             QFrame#sideCard {{ background:transparent; border:0; }}
 
-            /* Buttons - outline style with transparent fill */
-            QPushButton {{ 
-                background: transparent; 
-                border: 1px solid {t['input_border']}; 
-                border-radius: 12px;
-                padding: 12px 24px; 
-                color: {t['text']}; 
-                font-weight: 500; 
-            }}
-            QPushButton:hover {{ 
-                background: transparent; 
-                border-color: {t['input_focus']}; 
-            }}
-            QPushButton:pressed {{ 
-                background: rgba(255, 255, 255, 0.10); 
-                border-color: {t['accent']}; 
-            }}
-            QPushButton:disabled {{ 
-                background: transparent; 
-                color: {t['muted']}; 
-                border-color: {t['border']}; 
-            }}
+            /* Buttons with smooth effects */
+            QPushButton {{ background:{t['tab_selected']}; border:1px solid {t['input_border']}; border-radius:16px;
+                           padding:12px 24px; color:{t['text']}; font-weight:500; }}
+            QPushButton:hover {{ background:{t['card_hover']}; border-color:{t['input_focus']}; }}
+            QPushButton:pressed {{ background:{t['card']}; border-color:{t['accent']}; }}
+            QPushButton:disabled {{ background:{t['card']}; color:{t['muted']}; border-color:{t['border']}; }}
 
             /* Placeholder */
             QLabel#placeholder {{ color:{t['muted']}; font-size:15px; }}
