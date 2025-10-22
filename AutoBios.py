@@ -2911,6 +2911,85 @@ class ModernToastManager(QtCore.QObject):
         self.show(message, "info", 3500)
 
 
+
+
+class LoadingSpinner(QtWidgets.QWidget):
+    """Modern loading spinner animation"""
+    
+    def __init__(self, parent=None, size=32, color=None):
+        super().__init__(parent)
+        self.size = size
+        self.color = color or THEME['accent']
+        self.angle = 0
+        self.setFixedSize(size, size)
+        
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.rotate)
+        self.timer.setInterval(50)
+    
+    def start(self):
+        self.timer.start()
+        self.show()
+    
+    def stop(self):
+        self.timer.stop()
+        self.hide()
+    
+    def rotate(self):
+        self.angle = (self.angle + 30) % 360
+        self.update()
+    
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        
+        painter.translate(self.size / 2, self.size / 2)
+        painter.rotate(self.angle)
+        
+        gradient = QtGui.QConicalGradient(0, 0, 0)
+        gradient.setColorAt(0, QtGui.QColor(self.color))
+        gradient.setColorAt(0.7, QtGui.QColor(self.color))
+        gradient.setColorAt(0.8, QtGui.QColor(self.color).lighter(150))
+        gradient.setColorAt(1, Qt.transparent)
+        
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QtGui.QBrush(gradient))
+        painter.drawEllipse(2, 2, self.size - 4, self.size - 4)
+
+
+class ProgressBar(QtWidgets.QWidget):
+    """Modern progress bar with smooth animation"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.value = 0
+        self.maximum = 100
+        self.animation = QtCore.QPropertyAnimation(self, b"value")
+        self.animation.setDuration(200)
+        self.setFixedHeight(6)
+        self.setStyleSheet(f"""
+            QWidget {{
+                background: {THEME['input_border']};
+                border-radius: 3px;
+            }}
+        """)
+    
+    def setValue(self, value):
+        self.value = min(value, self.maximum)
+        self.update()
+    
+    def setMaximum(self, maximum):
+        self.maximum = maximum
+    
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        
+        if self.maximum > 0 and self.value > 0:
+            width = int((self.value / self.maximum) * self.width())
+            painter.fillRect(0, 0, width, self.height(), QtGui.QColor(THEME['accent']))
+
+
 class NotificationManager(QtCore.QObject):
     """
     Centralized toast notification system with deduplication
