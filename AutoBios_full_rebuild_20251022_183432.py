@@ -3927,9 +3927,8 @@ class AutoBiosWindow(QtWidgets.QWidget):
         # Enable drag & drop for nvram.txt files
         self.setAcceptDrops(True)
 
-        # Initialize notification systems
-        self.notifications = NotificationManager(self)  # Legacy
-        self.toast = ProToastManager(self)  # New professional toasts
+        # Initialize notification system
+        self.notifications = NotificationManager(self)
 
         # Initialize SCEWIN runner
         self.scewin_runner = ScewinRunner(self)
@@ -4122,98 +4121,219 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self.tabs.addTab(settings_tab, "")
 
-        # Tab 1: Presets - REBUILT WITH 3-PANE LAYOUT
+        # Tab 1: Presets
         presets_tab = QtWidgets.QWidget()
-        p_main = QtWidgets.QHBoxLayout(presets_tab)
-        p_main.setContentsMargins(16, 16, 16, 16)
-        p_main.setSpacing(16)
-        
-        # LEFT: Family sidebar
-        left = QtWidgets.QWidget()
-        left.setMaximumWidth(220)
-        left_lo = QtWidgets.QVBoxLayout(left)
-        fam_title = QtWidgets.QLabel('Preset Families')
-        fam_title.setStyleSheet(f'font-size:16px;font-weight:600;color:{THEME["text"]}')
-        left_lo.addWidget(fam_title)
-        self.fam_list = QtWidgets.QListWidget()
-        self.fam_list.setStyleSheet(f'QListWidget{background:transparent;border:none}QListWidget::item{padding:12px 8px;border-bottom:2px solid transparent;color:{THEME["muted"]}}QListWidget::item:selected{background:transparent;color:{THEME["text"]};border-bottom:2px solid {THEME["accent"]}}')
-        for f in ['Basic', 'Advanced']: self.fam_list.addItem(f)
-        left_lo.addWidget(self.fam_list)
-        left_lo.addStretch()
-        
-        # CENTER: Cards
-        center = QtWidgets.QWidget()
-        center_lo = QtWidgets.QVBoxLayout(center)
-        self.card_title = QtWidgets.QLabel('Select family')
-        self.card_title.setStyleSheet(f'font-size:16px;font-weight:600;color:{THEME["text"]}')
-        center_lo.addWidget(self.card_title)
-        self.card_scroll = QtWidgets.QScrollArea()
-        self.card_scroll.setWidgetResizable(True)
-        self.card_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.card_container = QtWidgets.QWidget()
-        self.card_layout = QtWidgets.QVBoxLayout(self.card_container)
-        self.card_layout.setAlignment(Qt.AlignTop)
-        self.card_scroll.setWidget(self.card_container)
-        center_lo.addWidget(self.card_scroll)
-        
-        # RIGHT: Details
-        right = QtWidgets.QWidget()
-        right_lo = QtWidgets.QVBoxLayout(right)
-        hdr = QtWidgets.QHBoxLayout()
-        self.det_title = QtWidgets.QLabel('Select preset')
-        self.det_title.setStyleSheet(f'font-size:16px;font-weight:600;color:{THEME["text"]}')
-        hdr.addWidget(self.det_title, 1)
-        cpu_w = QtWidgets.QWidget()
-        cpu_lo = QtWidgets.QHBoxLayout(cpu_w)
-        cpu_lo.setSpacing(0)
-        cpu_lo.setContentsMargins(0,0,0,0)
-        self.cpu_intel_btn = QtWidgets.QPushButton('Intel')
-        self.cpu_amd_btn = QtWidgets.QPushButton('AMD')
-        for b in [self.cpu_intel_btn, self.cpu_amd_btn]:
-            b.setCheckable(True)
-            b.setStyleSheet(f'QPushButton{background:transparent;border:1px solid {THEME["input_border"]};padding:6px 16px;color:{THEME["muted"]}}QPushButton:checked{background:{THEME["accent"]};color:white}')
-        self.cpu_intel_btn.setStyleSheet(self.cpu_intel_btn.styleSheet() + 'border-radius:12px 0 0 12px')
-        self.cpu_amd_btn.setStyleSheet(self.cpu_amd_btn.styleSheet() + 'border-radius:0 12px 12px 0')
-        cpu_lo.addWidget(self.cpu_intel_btn)
-        cpu_lo.addWidget(self.cpu_amd_btn)
-        hdr.addWidget(cpu_w)
-        right_lo.addLayout(hdr)
-        self.det_scroll = QtWidgets.QScrollArea()
-        self.det_scroll.setWidgetResizable(True)
-        self.det_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.det_container = QtWidgets.QWidget()
-        self.det_layout = QtWidgets.QVBoxLayout(self.det_container)
-        self.det_layout.setAlignment(Qt.AlignTop)
-        self.det_scroll.setWidget(self.det_container)
-        right_lo.addWidget(self.det_scroll, 1)
-        foot = QtWidgets.QHBoxLayout()
-        self.apply_preset_btn = QtWidgets.QPushButton('Apply Preset')
-        foot.addStretch()
-        foot.addWidget(self.apply_preset_btn)
-        right_lo.addLayout(foot)
-        
-        # Add panels
-        p_main.addWidget(left, 1)
-        p_main.addWidget(center, 2)
-        p_main.addWidget(right, 2)
-        
+        presets_tab.setStyleSheet("background: transparent;")
+        p_outer = QtWidgets.QVBoxLayout(presets_tab)
+        p_outer.setContentsMargins(16, 16, 16, 16)
+        p_outer.setSpacing(12)
+
+        splitter = QtWidgets.QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(12)  # Visible gap between panels
+        splitter.setChildrenCollapsible(False)
+        splitter.setStyleSheet(f"QSplitter::handle {{ background: {THEME['bg']}; }}")
+
+        # Left list of matched settings
+        left_wrap = QtWidgets.QWidget()
+        lw = QtWidgets.QVBoxLayout(left_wrap)
+        lw.setContentsMargins(0, 0, 0, 0)
+        lw.setSpacing(10)
+
+        self.presetProxy = NameSetProxy()
+        self.presetProxy.setSourceModel(self.model)
+
+        self.presetTable = QtWidgets.QTableView(objectName="presetListTable")
+        self.presetTable.setModel(self.presetProxy)
+        self.presetTable.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.presetTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.presetTable.setWordWrap(False)
+        self.presetTable.setShowGrid(False)  # Disable grid to avoid double lines
+
+        # Install custom rounded scrollbars
+        self.presetTable.setVerticalScrollBar(RoundedScrollBar(Qt.Vertical))
+        self.presetTable.setHorizontalScrollBar(RoundedScrollBar(Qt.Horizontal))
+
+        self.presetTable.verticalHeader().setVisible(False)
+        self.presetTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        self.presetTable.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Fixed)
+        self.presetTable.setColumnWidth(1, 260)
+        self.presetTable.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.presetTable.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.presetTable.setViewportMargins(0, 0, 0, 16)  # Increased bottom margin
+
+        # Performance optimizations for preset table
+        self.presetTable.viewport().setAttribute(Qt.WA_StaticContents)  # Reduce repaints
+
+        self.presetTable.setColumnHidden(2, True)
+        self.presetTable.setColumnHidden(3, True)
+        self.presetTable.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
+        self.presetTable.verticalHeader().setDefaultSectionSize(32)
+        self.presetTable.setFrameShape(QtWidgets.QFrame.NoFrame)
+        lw.addWidget(self.presetTable, 1)
+
+        self.preset_placeholder = QtWidgets.QLabel(
+            "Use the toggles on the right to show preset settings.",
+            alignment=Qt.AlignCenter
+        )
+        lw.addWidget(self.preset_placeholder, 1)
+        self.presetTable.horizontalHeader().setVisible(False)
+        self.presetTable.setVisible(False)
+        self.preset_placeholder.setVisible(True)
+
+        # Right card with controls and pages
+        right_outer = QtWidgets.QFrame(objectName="sideOuter")
+        right_outer.setMinimumWidth(420)
+        ro = QtWidgets.QVBoxLayout(right_outer)
+        ro.setContentsMargins(0, 0, 0, 0)
+        ro.setSpacing(0)
+
+        # inner card
+        right_wrap = QtWidgets.QFrame(objectName="sideCard")
+        right_wrap.setStyleSheet("background: transparent;")
+        rw = QtWidgets.QVBoxLayout(right_wrap)
+        rw.setContentsMargins(14, 14, 14, 14)
+        rw.setSpacing(12)
+
+        lbl = QtWidgets.QLabel("Preset tools")
+
+        # Family switch row (no errors on toggle)
+        self.familySwitch = ToggleSwitch()
+        self.familySwitch.setObjectName("familySwitch")
+        self.familySwitch.setChecked(False)  # Intel default
+        self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
+        self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+        topCenter = QtWidgets.QHBoxLayout()
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
+        topCenter.addStretch(1)
+        topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
+        topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
+        topCenter.addStretch(1)
+        centerRow = QtWidgets.QWidget()
+        centerRow.setLayout(topCenter)
+        centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
+        centerRow.setStyleSheet("background: transparent; border: none;")
+        # Scroll area for page content (only scrolls when needed!)
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # Only show when needed!
+        self.scroll.setStyleSheet("background: transparent;")
+
+        # Install custom rounded scrollbar
+        self.scroll.setVerticalScrollBar(RoundedScrollBar(Qt.Vertical))
+        self.scrollContent = QtWidgets.QWidget()
+        self.scrollContent.setStyleSheet("background: transparent;")
+        sc_lo = QtWidgets.QVBoxLayout(self.scrollContent)
+        sc_lo.setContentsMargins(0, 0, 0, 0)
+        sc_lo.setSpacing(0)
+        sc_lo.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)  # Fit content exactly
+
+        # PAGES - Custom stacked widget that sizes to current page only
+        self.pages = DynamicStackedWidget()
+        self.pages.setStyleSheet("background: transparent;")
+        self._page_basic = QtWidgets.QWidget()
+        self._page_basic.setStyleSheet("background: transparent;")
+        self._page_adv = QtWidgets.QWidget()
+        self._page_adv.setStyleSheet("background: transparent;")
+
+        # Page: BASIC
+        vb = QtWidgets.QVBoxLayout(self._page_basic)
+        vb.setContentsMargins(0, 0, 0, 0)
+        vb.setSpacing(8)
+        vb.setAlignment(Qt.AlignTop)  # Align items to top
+        self.rows_basic: Dict[str, PresetRow] = {}
+        for name in PRESET_ORDER_BASIC:
+            r = PresetRow(name, on=False)
+            r.toggled.connect(lambda _name, state, n=name: self._on_preset_toggle_basic(n, state))
+            self.rows_basic[name] = r
+            vb.addWidget(r, 0, Qt.AlignTop)  # Align each widget to top
+
+        # Page: ADVANCED (only active family shown)
+        self.adv_container = QtWidgets.QWidget()
+        self.adv_container.setStyleSheet("background: transparent;")
+        self.adv_layout = QtWidgets.QVBoxLayout(self.adv_container)
+        self.adv_layout.setContentsMargins(0, 0, 0, 0)
+        self.adv_layout.setSpacing(8)
+        self.adv_layout.setAlignment(Qt.AlignTop)  # Align to top
+        self.rows_adv_intel: Dict[str, PresetRow] = {}
+        self.rows_adv_amd: Dict[str, PresetRow] = {}
+        self._enabled_adv_intel = {}
+        self._enabled_adv_amd = {}
+        self._build_adv_page_for_family("intel")  # initial build
+
+        av = QtWidgets.QVBoxLayout(self._page_adv)
+        av.setContentsMargins(0, 0, 0, 0)
+        av.setSpacing(0)
+        av.setAlignment(Qt.AlignTop)  # Align to top
+        av.addWidget(self.adv_container, 0, Qt.AlignTop)
+
+        self.pages.addWidget(self._page_basic)
+        self.pages.addWidget(self._page_adv)
+
+        sc_lo.addWidget(self.pages)
+        self.scroll.setWidget(self.scrollContent)
+
+
+
+
+
         # State
-        self._active_preset = None
-        self._preset_family = 'intel'
-        self._enabled_basic = {k: False for k in PRESET_ORDER_BASIC}
-        self._enabled_adv_intel = {k: False for k in PRESET_ORDER_ADV_INTEL}
-        self._enabled_adv_amd = {k: False for k in PRESET_ORDER_ADV_AMD}
-        self.pending_targets = {}
-        self.cpu_intel_btn.setChecked(True)
-        
-        # Signals
-        self.fam_list.currentRowChanged.connect(self._fam_changed)
-        self.cpu_intel_btn.clicked.connect(lambda: self._cpu_sel('intel'))
-        self.cpu_amd_btn.clicked.connect(lambda: self._cpu_sel('amd'))
-        self.apply_preset_btn.clicked.connect(self._do_apply_preset)
-        self.fam_list.setCurrentRow(0)
-        
-        self.tabs.addTab(presets_tab, '')
+        self._preset_family = "intel"
+        self._enabled_basic: Dict[str, bool] = {k: False for k in PRESET_ORDER_BASIC}
+        self._enabled_adv_intel: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_INTEL}
+        self._enabled_adv_amd: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_AMD}
+        self.pending_targets: Dict[int, Any] = {}
+        self.current_path: Optional[Path] = None
+        self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
+
+        # Wire up
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
+        rw.addWidget(lbl)
+        rw.addWidget(centerRow, 0, Qt.AlignHCenter)
+        rw.addWidget(self.scroll, 1)
+
+        # New Page Navigation with Arrows
+        nav_widget = QtWidgets.QWidget(objectName="presetNav")
+        nav_layout = QtWidgets.QHBoxLayout(nav_widget)
+        nav_layout.setContentsMargins(0, 0, 0, 0)
+        nav_layout.setSpacing(16)
+        nav_layout.setAlignment(Qt.AlignCenter)
+
+        self.btn_page_left = QtWidgets.QPushButton("<")
+        self.btn_page_left.setObjectName("presetNavButton")
+        self.btn_page_left.setCursor(Qt.PointingHandCursor)
+
+        self.lbl_page_title = QtWidgets.QLabel()
+        self.lbl_page_title.setObjectName("presetPageTitle")
+
+        self.btn_page_right = QtWidgets.QPushButton(">")
+        self.btn_page_right.setObjectName("presetNavButton")
+        self.btn_page_right.setCursor(Qt.PointingHandCursor)
+
+        nav_layout.addWidget(self.btn_page_left)
+        nav_layout.addWidget(self.lbl_page_title)
+        nav_layout.addWidget(self.btn_page_right)
+
+        # Connect signals
+        self.btn_page_left.clicked.connect(lambda: self._navigate_presets(-1))
+        self.btn_page_right.clicked.connect(lambda: self._navigate_presets(1))
+
+        # Add the new navigation widget and set its initial state
+        rw.addWidget(nav_widget, 0, Qt.AlignHCenter)
+        self._update_preset_nav_ui() # Set initial state
+
+        ro.addWidget(right_wrap)
+
+        splitter.addWidget(left_wrap)
+        splitter.addWidget(right_outer)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+        p_outer.addWidget(splitter, 1)
+
+        self.tabs.addTab(presets_tab, "")
 
         # Sync tabs
         self.topTabs.currentChanged.connect(self.tabs.setCurrentIndex)
@@ -4389,110 +4509,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 self.lbl_page_title.setText("Advanced Presets")
                 self.btn_page_left.setEnabled(True)
                 self.btn_page_right.setEnabled(False)
-
-    # ---------- Preset Methods ----------
-    def _fam_changed(self, row):
-        if row < 0: return
-        fam = ["Basic", "Advanced"][row] if row < 2 else "Basic"
-        self.card_title.setText(fam)
-        while self.card_layout.count():
-            w = self.card_layout.takeAt(0).widget()
-            if w: w.deleteLater()
-        if row == 0:
-            for name in PRESET_ORDER_BASIC:
-                self._add_card(f"basic_{name}", name)
-        else:
-            for name in PRESET_ORDER_ADV_INTEL:
-                self._add_card(f"intel_{name}", f"Intel {name}")
-            for name in PRESET_ORDER_ADV_AMD:
-                self._add_card(f"amd_{name}", f"AMD {name}")
-    
-    def _add_card(self, pid, title):
-        c = QtWidgets.QFrame()
-        c.setCursor(Qt.PointingHandCursor)
-        c.setStyleSheet(f"QFrame{{background:transparent;border:1px solid {THEME['input_border']};border-radius:12px;padding:16px}}QFrame:hover{{border-color:{THEME['input_focus']}}}")
-        lo = QtWidgets.QVBoxLayout(c)
-        t = QtWidgets.QLabel(title)
-        t.setStyleSheet(f"font-size:14px;font-weight:600;color:{THEME['text']}")
-        lo.addWidget(t)
-        c.mousePressEvent = lambda e: self._card_click(pid, title)
-        self.card_layout.addWidget(c)
-    
-    def _card_click(self, pid, title):
-        self._active_preset = pid
-        self.det_title.setText(title)
-        while self.det_layout.count():
-            w = self.det_layout.takeAt(0).widget()
-            if w: w.deleteLater()
-        data = {}
-        if pid.startswith("basic_"):
-            name = pid.replace("basic_", "")
-            data = INTEL_PRESETS_BASIC.get(name, {}) if self._preset_family == "intel" else AMD_PRESETS_BASIC.get(name, {})
-        elif pid.startswith("intel_"):
-            name = pid.replace("intel_", "")
-            data = INTEL_PRESETS_ADV.get(name, {})
-            self._preset_family = "intel"
-            self.cpu_intel_btn.setChecked(True)
-            self.cpu_amd_btn.setChecked(False)
-        elif pid.startswith("amd_"):
-            name = pid.replace("amd_", "")
-            data = AMD_PRESETS_ADV.get(name, {})
-            self._preset_family = "amd"
-            self.cpu_intel_btn.setChecked(False)
-            self.cpu_amd_btn.setChecked(True)
-        for k, v in data.items():
-            r = QtWidgets.QWidget()
-            rlo = QtWidgets.QHBoxLayout(r)
-            rlo.setContentsMargins(8,4,8,4)
-            l = QtWidgets.QLabel(k)
-            l.setStyleSheet(f"color:{THEME['text']};font-size:13px")
-            rlo.addWidget(l, 1)
-            vl = QtWidgets.QLabel(str(v))
-            vl.setStyleSheet(f"color:{THEME['muted']};font-size:12px")
-            rlo.addWidget(vl)
-            self.det_layout.addWidget(r)
-        self.det_layout.addStretch()
-    
-    def _cpu_sel(self, cpu):
-        self._preset_family = cpu
-        self.cpu_intel_btn.setChecked(cpu == "intel")
-        self.cpu_amd_btn.setChecked(cpu == "amd")
-        if self._active_preset and self._active_preset.startswith("basic_"):
-            self._card_click(self._active_preset, self.det_title.text())
-    
-    def _do_apply_preset(self):
-        if not self._active_preset:
-            if hasattr(self, 'toast'): self.toast.warning("No preset", "Select first")
-            return
-        if not self.current_path or not self.current_path.exists():
-            self._show_no_file_dialog()
-            return
-        data = {}
-        if self._active_preset.startswith("basic_"):
-            name = self._active_preset.replace("basic_", "")
-            data = INTEL_PRESETS_BASIC.get(name, {}) if self._preset_family == "intel" else AMD_PRESETS_BASIC.get(name, {})
-        elif self._active_preset.startswith("intel_"):
-            name = self._active_preset.replace("intel_", "")
-            data = INTEL_PRESETS_ADV.get(name, {})
-        elif self._active_preset.startswith("amd_"):
-            name = self._active_preset.replace("amd_", "")
-            data = AMD_PRESETS_ADV.get(name, {})
-        if not data: return
-        norm = build_normalized_map(data)
-        rows = []
-        for i, s in enumerate(self.model._rows):
-            if normalize_key(s.name) in norm:
-                rows.append(i)
-        self.pending_targets = {}
-        for r in rows:
-            nk = normalize_key(self.model._rows[r].name)
-            _, val = norm[nk]
-            self.pending_targets[r] = val
-        cnt = self._apply_targets_now()
-        if cnt > 0:
-            self.update_counts()
-            if hasattr(self, 'toast'): self.toast.success("Applied", self.det_title.text())
-            self.status(f"Applied: {self.det_title.text()}")
 
     # ---------- Style ----------
     def _stylesheet(self) -> str:
