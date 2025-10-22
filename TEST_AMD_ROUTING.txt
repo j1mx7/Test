@@ -1,0 +1,53 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                    AMD PRESET ROUTING - DEBUG TEST                       ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+I've added comprehensive debug logging to track the AMD preset issue.
+
+RUN THE APP AND DO THIS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Start the app:
+   python AutoBios.py
+
+2. Go to the Presets tab
+
+3. Toggle the switch to AMD (move it from Intel to AMD)
+
+4. Click the right arrow to navigate to "Advanced Presets" page
+
+5. Look at the console output
+
+WHAT TO LOOK FOR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You should see output like this:
+
+======================================================================
+[DEBUG] _on_family_switch called: on=True, fam=amd
+[DEBUG] Before: self._preset_family = intel
+[DEBUG] After: self._preset_family = amd
+[DEBUG] Calling _build_adv_page_for_family('amd')
+[DEBUG] _build_adv_page_for_family('amd') called
+[DEBUG] Cleared 25 widgets from adv_layout
+[DEBUG] Building AMD advanced page (25 presets)
+[DEBUG] Added 25 AMD preset rows to layout
+[DEBUG] adv_layout now has 25 widgets
+[DEBUG] Calling _rebuild_preset_view_and_targets()
+======================================================================
+
+WHAT THE NUMBERS MEAN:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ on=True means AMD was selected
+✅ fam=amd confirms AMD mode
+✅ "Cleared X widgets" shows old Intel presets were removed
+✅ "Building AMD advanced page (25 presets)" confirms AMD data exists
+✅ "Added 25 AMD preset rows" confirms widgets were created
+✅ "adv_layout now has 25 widgets" confirms they're in the layout
+
+COPY AND PASTE THE DEBUG OUTPUT HERE SO I CAN SEE WHAT'S HAPPENING!
+
+══════════════════════════════════════════════════════════════════════════

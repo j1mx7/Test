@@ -4967,6 +4967,14 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 r.toggled.connect(lambda _name, state, n=name: self._on_adv_specific_toggle("amd", n, state))
                 self.rows_adv_amd[name] = r
                 self.adv_layout.addWidget(r, 0, Qt.AlignTop)  # Align to top
+            print(f"[DEBUG] Added {len(self.rows_adv_amd)} AMD preset rows to layout")
+            print(f"[DEBUG] adv_layout now has {self.adv_layout.count()} widgets")
+        
+        # Force layout update
+        self._page_adv.updateGeometry()
+        self.scrollContent.updateGeometry()
+        self.scroll.update()
+        print(f"[DEBUG] Layout updated and refreshed")
 
     def _revert_row_switch(self, row: PresetRow, target_state: bool) -> None:
         row.sw.blockSignals(True)
@@ -5060,10 +5068,17 @@ class AutoBiosWindow(QtWidgets.QWidget):
     def _on_family_switch(self, on: bool) -> None:
         """Toggle between AMD and Intel presets"""
         fam = "amd" if on else "intel"
+        print(f"\n{'='*70}")
+        print(f"[DEBUG] _on_family_switch called: on={on}, fam={fam}")
+        print(f"[DEBUG] Before: self._preset_family = {self._preset_family}")
         self._preset_family = fam
+        print(f"[DEBUG] After: self._preset_family = {self._preset_family}")
         self.familyLabel.setText("AMD" if on else "Intel")
+        print(f"[DEBUG] Calling _build_adv_page_for_family('{fam}')")
         self._build_adv_page_for_family(fam)
+        print(f"[DEBUG] Calling _rebuild_preset_view_and_targets()")
         self._rebuild_preset_view_and_targets()
+        print(f"{'='*70}\n")
         # Show confirmation toast
         cpu_name = "AMD" if on else "Intel"
         self.toast.info(f"Switched to {cpu_name} presets")
@@ -5529,15 +5544,6 @@ def main() -> None:
 
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(APP_TITLE)
-
-    win = AutoBiosWindow()
-    win.show()
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()
-
 
     win = AutoBiosWindow()
     win.show()
