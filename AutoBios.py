@@ -2849,7 +2849,7 @@ class ModernToast(QtWidgets.QFrame):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.hide_toast)
     
-    def show_toast(self, parent_widget, duration_ms=3500):
+    def show_toast(self, parent_widget):
         parent_rect = parent_widget.geometry()
         center_x = parent_rect.center().x() - self.width() // 2
         bottom_y = parent_rect.bottom() - 80
@@ -4001,9 +4001,17 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Use the toggles on the right to show preset settings.",
+            "Enable preset toggles on the right to preview settings",
             alignment=Qt.AlignCenter
         )
+        self.preset_placeholder.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['muted']};
+                font-size: 13px;
+                padding: 60px 20px;
+                background: transparent;
+            }}
+        """)
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -4023,26 +4031,35 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        lbl = QtWidgets.QLabel("Preset tools")
+        # Premium card header
+        lbl = QtWidgets.QLabel("Preset Configuration")
+        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']}; margin-bottom: 4px;")
 
-        # Family switch row (no errors on toggle)
+        # CPU Family selector - Clean and clear
+        cpu_label = QtWidgets.QLabel("CPU Family:")
+        cpu_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; font-weight: 500;")
+        
         self.familySwitch = ToggleSwitch()
         self.familySwitch.setObjectName("familySwitch")
-        self.familySwitch.setChecked(False)  # Intel default
+        self.familySwitch.setChecked(False)  # Intel default (off=Intel, on=AMD)
+        
         self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
+        self.familyLabel.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600;")
         self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
         topCenter = QtWidgets.QHBoxLayout()
-        topCenter.setContentsMargins(0, 0, 0, 0)
-        topCenter.setSpacing(10)
+        topCenter.setContentsMargins(8, 8, 8, 8)
+        topCenter.setSpacing(12)
         topCenter.addStretch(1)
+        topCenter.addWidget(cpu_label, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
         topCenter.addStretch(1)
+        
         centerRow = QtWidgets.QWidget()
         centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet("background: transparent; border: none;")
+        centerRow.setStyleSheet(f"background: transparent; border: 1px solid {THEME['input_border']}; border-radius: 8px; padding: 0;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4119,9 +4136,23 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right panel with professional spacing
         rw.addWidget(lbl)
+        
+        # Subtle divider after title
+        div1 = QtWidgets.QFrame()
+        div1.setFrameShape(QtWidgets.QFrame.HLine)
+        div1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
+        rw.addWidget(div1)
+        
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
+        
+        # Divider after CPU selector
+        div2 = QtWidgets.QFrame()
+        div2.setFrameShape(QtWidgets.QFrame.HLine)
+        div2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
+        rw.addWidget(div2)
+        
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4131,16 +4162,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
         nav_layout.setSpacing(16)
         nav_layout.setAlignment(Qt.AlignCenter)
 
-        self.btn_page_left = QtWidgets.QPushButton("<")
+        self.btn_page_left = QtWidgets.QPushButton("‹")
         self.btn_page_left.setObjectName("presetNavButton")
         self.btn_page_left.setCursor(Qt.PointingHandCursor)
+        self.btn_page_left.setFixedSize(36, 36)
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
+        self.lbl_page_title.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600; min-width: 100px;")
+        self.lbl_page_title.setAlignment(Qt.AlignCenter)
 
-        self.btn_page_right = QtWidgets.QPushButton(">")
+        self.btn_page_right = QtWidgets.QPushButton("›")
         self.btn_page_right.setObjectName("presetNavButton")
         self.btn_page_right.setCursor(Qt.PointingHandCursor)
+        self.btn_page_right.setFixedSize(36, 36)
 
         nav_layout.addWidget(self.btn_page_left)
         nav_layout.addWidget(self.lbl_page_title)
@@ -4641,7 +4676,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4689,7 +4724,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4698,7 +4733,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rows = self.model.modified_rows()
         if not rows:
             self.status("No changes to import.")
-            self.notifications.notify_info("No changes to import", duration_ms=2500)
+            self.toast.info("No changes to import")
             return
             
         nvram_tuned_path = exe.parent / "nvram_tuned.txt"
@@ -4722,7 +4757,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
             logging.info(f"Created nvram_tuned.txt at: {nvram_tuned_path} with {len(rows)} modified settings")
         except Exception as e:
             logging.error(f"Failed to create nvram_tuned.txt: {e}")
-            self.notifications.notify_error(f"Failed to create nvram_tuned.txt: {e}")
+            self.toast.error(f"Failed to create nvram_tuned.txt: {e}")
             return
 
         # Disable import button and show progress (confirmation already done above)
@@ -4750,7 +4785,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4783,7 +4818,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if result.success:
             if operation == "import":
                 self.status("Import successful!")
-                self.notifications.notify_success("BIOS settings imported successfully")
+                self.toast.success("BIOS settings imported successfully")
                 logging.info("Import completed successfully")
 
             elif operation == "export":
@@ -4791,7 +4826,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 exported_path = self._export_exe_path.parent / DEFAULT_NVRAM_NAME
 
                 # Success toast - compact, text only
-                self.notifications.notify_success(
+                self.toast.success(
                     "Exported successfully",
                     duration_ms=3000
                 )
@@ -4818,7 +4853,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 exported_path = self._export_exe_path.parent / DEFAULT_NVRAM_NAME
 
                 # Success toast - compact, text only
-                self.notifications.notify_success(
+                self.toast.success(
                     "Exported successfully",
                     duration_ms=3000
                 )
@@ -4850,17 +4885,17 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
             if operation == "import":
                 self.status(f"Import failed: {error_msg}")
-                self.notifications.notify_error("Import failed", details=error_msg)
+                self.toast.error("Import failed")
                 logging.error(f"Import failed: {error_msg}")
 
             elif operation == "export":
                 self.status(f"Export failed: {error_msg}")
-                self.notifications.notify_error("Export failed", details=error_msg)
+                self.toast.error("Export failed")
                 logging.error(f"Export failed: {error_msg}")
 
             elif operation == "export_from_dialog":
                 self.status(f"Export failed: {error_msg}")
-                self.notifications.notify_error("Export failed", details=error_msg)
+                self.toast.error("Export failed")
                 logging.error(f"Export failed: {error_msg}")
 
                 # Re-enable dialog buttons on failure
@@ -4894,7 +4929,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.tune_columns()
 
             # Show success toast
-            self.notifications.notify_success(f"Loaded {path.name}", duration_ms=2200)
+            self.toast.success(f"Loaded {path.name}")
         finally:
             self.table.setUpdatesEnabled(True)
 
@@ -4930,7 +4965,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if len(path_str) > 50:
             path_str = path_str[:25] + "..." + path_str[-22:]
 
-        self.notifications.notify_success(f"Saved file to {path_str}", duration_ms=2500)
+        self.toast.success(f"Saved file to {path_str}")
 
     # -------- Presets logic --------
     def _current_basic_map(self) -> Dict[str, Dict[str, Any]]:
@@ -5054,12 +5089,15 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.status("Preset list cleared.")
 
     def _on_family_switch(self, on: bool) -> None:
+        """Toggle between AMD and Intel presets"""
         fam = "amd" if on else "intel"
         self._preset_family = fam
-        self.status(f"Switched to {fam.upper()} presets")
         self.familyLabel.setText("AMD" if on else "Intel")
         self._build_adv_page_for_family(fam)
         self._rebuild_preset_view_and_targets()
+        # Show confirmation toast
+        cpu_name = "AMD" if on else "Intel"
+        self.toast.info(f"Switched to {cpu_name} presets")
 
     def _apply_targets_now(self) -> int:
         def _norm_label(x: str) -> str:
@@ -5186,7 +5224,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
     # Note: show_glow_error replaced by NotificationManager.notify_error()
     # Kept for backward compatibility during transition
     def show_glow_error(self, title: str, text: str):
-        self.notifications.notify_error(text, details=title if title != text else None)
+        self.toast.error(text)
 
     def apply_config(self) -> None:
         if self.model.rowCount() == 0:
@@ -5217,7 +5255,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         # Enhanced status and notification
         if cnt == 0:
             self.status("No changes to apply.")
-            self.notifications.notify_info("No changes to apply", duration_ms=2500)
+            self.toast.info("No changes to apply")
         else:
             change_word = "change" if cnt == 1 else "changes"
             
@@ -5227,14 +5265,14 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 if len(active_presets) > 3:
                     preset_list += f" +{len(active_presets) - 3} more"
                 self.status(f"Applied {cnt} {change_word}: {preset_list}")
-                self.notifications.notify_success(
+                self.toast.success(
                     f"Applied {cnt} {change_word}",
                     subtitle=preset_list if len(preset_list) < 50 else None,
                     duration_ms=3500
                 )
             else:
                 self.status(f"Applied {cnt} {change_word}.")
-                self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=3500)
+                self.toast.success(f"Applied {cnt} {change_word}")
 
     def reset_config(self) -> None:
         """Full app reset: settings, presets, search, filters, counters"""
@@ -5322,9 +5360,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         
         # Show success notification
         if reset_count > 0:
-            self.notifications.notify_success(f"Full reset: {reset_count} settings + all presets", duration_ms=2500)
+            self.toast.success(f"Full reset: {reset_count} settings + all presets")
         else:
-            self.notifications.notify_info("Reset complete (no changes to restore)", duration_ms=2500)
+            self.toast.info("Reset complete (no changes to restore)")
 
     def update_counts(self) -> None:
         edited, applied = self.model.get_counts()
@@ -5461,7 +5499,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         if not txt_files:
             self.status("Invalid file type.")
-            self.notifications.notify_error("Invalid file type. Please drop a .txt file.")
+            self.toast.error("Invalid file type. Please drop a .txt file.")
             return
 
         # Load the first .txt file
@@ -5472,13 +5510,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
             try:
                 self.load_path(dropped_path)
                 # Success toast
-                self.notifications.notify_success(f"Loaded {dropped_path.name}")
+                self.toast.success(f"Loaded {dropped_path.name}")
             except Exception as e:
                 self.status(f"Failed to load dropped file: {e}")
-                self.notifications.notify_error(f"Could not load {dropped_path.name}", details=str(e))
+                self.toast.error(f"Could not load {dropped_path.name}", details=str(e))
         else:
             self.status(f"Dropped file not found: {dropped_path.name}")
-            self.notifications.notify_error(f"File not found: {dropped_path.name}")
+            self.toast.error(f"File not found: {dropped_path.name}")
 
     # --------------------------------------------------------------------------------------
     # Search Filter (Optimized with debouncing)
