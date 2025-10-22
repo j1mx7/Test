@@ -2592,11 +2592,6 @@ class ToastNotification(QtWidgets.QFrame):
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setObjectName("ToastBubble")
         self.setAutoFillBackground(False)
-        
-        # Setup opacity effect for fade animations
-        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self._opacity_effect)
-        self._opacity_effect.setOpacity(1.0)
 
         # Unified rounded toast styling - matches all toasts
         self.setStyleSheet(f"""
@@ -2702,7 +2697,7 @@ class ToastNotification(QtWidgets.QFrame):
         self.adjustSize()
 
         # Animations
-        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
         self.fade_anim.setDuration(200)
         self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
@@ -2746,48 +2741,36 @@ class ToastNotification(QtWidgets.QFrame):
         return pixmap
 
     def show_toast(self, parent_widget):
-        """Show toast at top-right with slide-down animation"""
-        # Position at top-right of parent (below custom title bar)
+        """Show toast with slide-up animation"""
+        # Position at bottom center of parent
         parent_rect = parent_widget.geometry()
-        
-        # Title bar height + margins
-        title_bar_height = 40
-        top_margin = 16
-        right_margin = 16
-        
-        # Final position (top-right, below title bar)
-        final_x = parent_rect.right() - self.width() - right_margin
-        final_y = parent_rect.top() + title_bar_height + top_margin
+        parent_center_x = parent_rect.center().x()
+        parent_bottom_y = parent_rect.bottom()
 
-        # Start position (above screen for slide-down)
-        start_x = final_x
-        start_y = parent_rect.top() - self.height()
+        # Start position (below screen)
+        start_x = parent_center_x - self.width() // 2
+        start_y = parent_bottom_y
+
+        # End position (visible, 60px from bottom)
+        end_x = start_x
+        end_y = parent_bottom_y - self.height() - 60
 
         self.move(start_x, start_y)
         self.show()
-        self._opacity_effect.setOpacity(0.0)  # Start fully transparent
 
         # Fade in
         self.fade_anim.setStartValue(0.0)
-        self.fade_anim.setEndValue(0.96)  # Slightly transparent
+        self.fade_anim.setEndValue(1.0)
         self.fade_anim.start()
 
-        # Slide down
+        # Slide up
         self.slide_anim.setStartValue(QtCore.QPoint(start_x, start_y))
-        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(end_x, end_y))
         self.slide_anim.start()
 
     def hide_toast(self):
-        """Hide toast with slide-up and fade-out animation"""
-        # Slide up slightly while fading
-        current_pos = self.pos()
-        self.slide_anim.setStartValue(current_pos)
-        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 20))
-        self.slide_anim.setDuration(200)
-        self.slide_anim.start()
-        
-        # Fade out
-        self.fade_anim.setStartValue(self._opacity_effect.opacity())
+        """Hide toast with fade-out animation"""
+        self.fade_anim.setStartValue(self.windowOpacity())
         self.fade_anim.setEndValue(0.0)
         self.fade_anim.finished.connect(self.deleteLater)
         self.fade_anim.start()
@@ -2918,7 +2901,7 @@ class NotificationManager(QtCore.QObject):
         self._last_messages[key] = now
         return True
 
-    def notify_success(self, text: str, duration_ms: int = 3500, subtitle: str = None):
+    def notify_success(self, text: str, duration_ms: int = 2200, subtitle: str = None):
         """Show success toast (no action buttons)"""
         if not self._should_show(text):
             return
@@ -2952,178 +2935,134 @@ class NotificationManager(QtCore.QObject):
 # --------------------------------------------------------------------------------------
 class NoFileLoadedDialog(QtWidgets.QDialog):
     """
-    Redesigned "No file loaded" dialog with clean outline style
+    Professional dialog shown when a file is required but none is loaded
     Features:
-    - Dashed drop zone (1px, transparent fill)
-    - Side-by-side outline buttons
-    - Clean, minimal layout
-    - ESC/Enter keyboard handling
+    - Primary actions: Load file, Import via SCEWIN
+    - Drag & drop zone for nvram.txt
+    - Dark theme, large buttons
+    - Esc closes, Enter triggers primary
     """
 
     load_file_requested = Signal()
+    import_requested = Signal()
     export_requested = Signal()
     file_dropped = Signal(Path)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        
-        # Frameless for consistency
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
-        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowTitle("No File Loaded")
         self.setModal(True)
-        
-        # Main container
-        container = QtWidgets.QWidget()
-        container.setObjectName("noFileContainer")
-        container.setStyleSheet(f"""
-            QWidget#noFileContainer {{
-                background: {THEME['card']};
-                border: 1px solid {THEME['border']};
-                border-radius: 12px;
+        self.setFixedWidth(480)
+
+        # Dark styling
+        self.setStyleSheet(f"""
+            QDialog {{
+                background: {THEME['bg']};
             }}
         """)
-        
-        container_layout = QtWidgets.QVBoxLayout(self)
-        container_layout.setContentsMargins(0, 0, 0, 0)
-        container_layout.addWidget(container)
-        
-        layout = QtWidgets.QVBoxLayout(container)
-        layout.setContentsMargins(32, 28, 32, 28)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(32, 32, 32, 32)
         layout.setSpacing(20)
 
         # Title
         title = QtWidgets.QLabel("No file loaded")
-        title.setStyleSheet(f"color: {THEME['text']}; font-size: 20px; font-weight: 600; background: transparent;")
+        title.setStyleSheet(f"color: {THEME['text']}; font-size: 24px; font-weight: 600;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        # Subtext
-        subtext = QtWidgets.QLabel("Load an nvram.txt file first to use this feature.")
-        subtext.setStyleSheet(f"color: {THEME['muted']}; font-size: 14px; background: transparent;")
-        subtext.setAlignment(Qt.AlignCenter)
-        subtext.setWordWrap(True)
-        layout.addWidget(subtext)
+        # Message
+        message = QtWidgets.QLabel("Load an nvram.txt file first to use this feature.")
+        message.setStyleSheet(f"color: {THEME['muted']}; font-size: 14px;")
+        message.setAlignment(Qt.AlignCenter)
+        message.setWordWrap(True)
+        layout.addWidget(message)
 
-        # Dashed drop zone
-        self.drop_zone = QtWidgets.QFrame()
-        self.drop_zone.setAcceptDrops(True)
-        self.drop_zone.setMinimumHeight(120)
-        self.drop_zone.setStyleSheet(f"""
+        # Drag & drop zone
+        drop_zone = QtWidgets.QFrame()
+        drop_zone.setAcceptDrops(True)
+        drop_zone.setStyleSheet(f"""
             QFrame {{
-                background: transparent;
-                border: 1px dashed {THEME['input_border']};
+                background: {THEME['card']};
+                border: 2px dashed {THEME['border']};
                 border-radius: 12px;
+                padding: 32px;
             }}
         """)
 
-        drop_layout = QtWidgets.QVBoxLayout(self.drop_zone)
+        drop_layout = QtWidgets.QVBoxLayout(drop_zone)
         drop_layout.setAlignment(Qt.AlignCenter)
-        drop_layout.setSpacing(8)
 
-        # Folder icon
         drop_icon = QtWidgets.QLabel("📁")
-        drop_icon.setStyleSheet("font-size: 42px; background: transparent;")
+        drop_icon.setStyleSheet("font-size: 48px;")
         drop_icon.setAlignment(Qt.AlignCenter)
         drop_layout.addWidget(drop_icon)
 
-        # Drop text
-        drop_text = QtWidgets.QLabel("Drag & drop nvram.txt or click to browse")
-        drop_text.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; background: transparent;")
+        drop_text = QtWidgets.QLabel("Drop nvram.txt here")
+        drop_text.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px;")
         drop_text.setAlignment(Qt.AlignCenter)
         drop_layout.addWidget(drop_text)
 
-        # Wire drop events
-        self.drop_zone.dragEnterEvent = self._drag_enter
-        self.drop_zone.dropEvent = self._drop
+        # Connect drop events
+        drop_zone.dragEnterEvent = self._drag_enter
+        drop_zone.dropEvent = self._drop
 
-        layout.addWidget(self.drop_zone)
+        layout.addWidget(drop_zone)
 
-        # Buttons row (side by side)
-        btn_row = QtWidgets.QHBoxLayout()
-        btn_row.setSpacing(12)
+        # Action buttons
+        btn_layout = QtWidgets.QVBoxLayout()
+        btn_layout.setSpacing(12)
 
-        # Browse button (outline style)
-        self.load_btn = QtWidgets.QPushButton("Browse nvram.txt…")
-        self.load_btn.setMinimumHeight(40)
+        # Primary: Load file
+        self.load_btn = QtWidgets.QPushButton("Load nvram.txt…")
         self.load_btn.setCursor(Qt.PointingHandCursor)
+        self.load_btn.setMinimumHeight(48)
         self.load_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent;
-                border: 1px solid {THEME['input_border']};
-                border-radius: 10px;
-                padding: 10px 20px;
-                color: {THEME['text']};
-                font-size: 14px;
+                background: {THEME['accent']};
+                color: #ffffff;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                padding: 12px 24px;
             }}
             QPushButton:hover {{
-                background: transparent;
-                border-color: {THEME['input_focus']};
+                background: {THEME['accent_hover']};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.10);
-                border-color: {THEME['accent']};
+                background: {THEME['accent_press']};
             }}
         """)
         self.load_btn.clicked.connect(self._on_load)
-        self.load_btn.setDefault(True)
-        btn_row.addWidget(self.load_btn)
+        btn_layout.addWidget(self.load_btn)
 
-        # Export button (outline style)
+        # Secondary: Export via SCEWIN
         self.export_btn = QtWidgets.QPushButton("Export (SCEWIN)")
-        self.export_btn.setMinimumHeight(40)
         self.export_btn.setCursor(Qt.PointingHandCursor)
+        self.export_btn.setMinimumHeight(44)
         self.export_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent;
-                border: 1px solid {THEME['input_border']};
-                border-radius: 10px;
-                padding: 10px 20px;
+                background: {THEME['card']};
                 color: {THEME['text']};
+                border: 1px solid {THEME['border']};
+                border-radius: 8px;
                 font-size: 14px;
+                font-weight: 500;
+                padding: 10px 20px;
             }}
             QPushButton:hover {{
-                background: transparent;
-                border-color: {THEME['input_focus']};
-            }}
-            QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.10);
+                background: {THEME['card_hover']};
                 border-color: {THEME['accent']};
             }}
         """)
         self.export_btn.clicked.connect(self._on_export)
-        btn_row.addWidget(self.export_btn)
+        btn_layout.addWidget(self.export_btn)
 
-        layout.addLayout(btn_row)
-        
-        self.setFixedWidth(460)
-        
-        # Fade-in animation
-        self.opacity_effect = QtWidgets.QGraphicsOpacityEffect()
-        container.setGraphicsEffect(self.opacity_effect)
-        
-        self.fade_in = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.fade_in.setDuration(200)
-        self.fade_in.setStartValue(0.0)
-        self.fade_in.setEndValue(1.0)
-        self.fade_in.setEasingCurve(QtCore.QEasingCurve.OutCubic)
-    
-    def showEvent(self, event):
-        super().showEvent(event)
-        if self.parent():
-            parent_rect = self.parent().geometry()
-            self.move(
-                parent_rect.center().x() - self.width() // 2,
-                parent_rect.center().y() - self.height() // 2
-            )
-        self.fade_in.start()
-    
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
-            self.reject()
-        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            self._on_load()
-        else:
-            super().keyPressEvent(event)
+        layout.addLayout(btn_layout)
+
+        # Keyboard shortcuts
+        self.load_btn.setDefault(True)  # Enter triggers this
 
     def _drag_enter(self, event):
         """Accept .txt files"""
@@ -3387,24 +3326,26 @@ class CustomTitleBar(QtWidgets.QWidget):
 
         layout.addStretch()
 
-        # Window control buttons - icon only, no borders, tint on hover
+        # Window control buttons - outline style with 1px border, transparent fill
         btn_style_base = f"""
             QPushButton {{
                 background: transparent;
-                border: none;
+                border: 1px solid {THEME['input_border']};
                 border-radius: 6px;
                 padding: 0;
-                min-width: 34px;
-                max-width: 34px;
-                min-height: 28px;
-                max-height: 28px;
+                min-width: 40px;
+                max-width: 40px;
+                min-height: 32px;
+                max-height: 32px;
                 margin-right: 8px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.12);
+                background: transparent;
+                border-color: {THEME['input_focus']};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.22);
+                background: rgba(255, 255, 255, 0.10);
+                border-color: {THEME['accent']};
             }}
         """
 
@@ -3426,24 +3367,26 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.max_btn.setCursor(Qt.PointingHandCursor)
         layout.addWidget(self.max_btn)
 
-        # Close button - icon only, red tint on hover
+        # Close button with outline style and red hover
         close_style = f"""
             QPushButton {{
                 background: transparent;
-                border: none;
+                border: 1px solid {THEME['input_border']};
                 border-radius: 6px;
                 padding: 0;
-                min-width: 34px;
-                max-width: 34px;
-                min-height: 28px;
-                max-height: 28px;
+                min-width: 40px;
+                max-width: 40px;
+                min-height: 32px;
+                max-height: 32px;
                 margin-right: 0px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 80, 80, 0.15);
+                background: transparent;
+                border-color: {THEME['error']};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 80, 80, 0.25);
+                background: rgba(255, 80, 80, 0.10);
+                border-color: {THEME['error']};
             }}
         """
         self.close_btn = QtWidgets.QPushButton()
@@ -3566,136 +3509,27 @@ class CustomTitleBar(QtWidgets.QWidget):
 # Preset row widget
 # --------------------------------------------------------------------------------------
 class PresetRow(QtWidgets.QWidget):
-    """Preset toggle row with hairline divider"""
     toggled = Signal(str, bool)  # preset_name, enabled
 
     def __init__(self, name: str, on: bool = False, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent;")
         self.name = name
-        
-        # Main layout with divider
-        main_lay = QtWidgets.QVBoxLayout(self)
-        main_lay.setContentsMargins(0, 0, 0, 0)
-        main_lay.setSpacing(0)
-        
-        # Row content
-        row = QtWidgets.QWidget()
-        row.setStyleSheet("background: transparent;")
-        lay = QtWidgets.QHBoxLayout(row)
-        lay.setContentsMargins(12, 10, 12, 10)
-        lay.setSpacing(12)
+        lay = QtWidgets.QHBoxLayout(self)
+        lay.setContentsMargins(10, 8, 10, 8)
+        lay.setSpacing(8)
 
         self.lbl = QtWidgets.QLabel(name)
-        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px;")
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-        self.sw = ToggleSwitch(self, width=48, height=26)
+        self.sw = ToggleSwitch(self)
         self.sw.setChecked(on)
+        # precise binding
         self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
 
         lay.addWidget(self.lbl, 1)
         lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
-        
-        main_lay.addWidget(row)
-        
-        # Hairline divider
-        divider = QtWidgets.QFrame()
-        divider.setFrameShape(QtWidgets.QFrame.HLine)
-        divider.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px;")
-        main_lay.addWidget(divider)
-
-
-
-# --------------------------------------------------------------------------------------
-# Segmented Control (Premium CPU Family Selector)
-# --------------------------------------------------------------------------------------
-class SegmentedControl(QtWidgets.QWidget):
-    """Clean segmented control for AMD/Intel selection"""
-    currentChanged = Signal(str)  # Emits "AMD" or "Intel"
-    
-    def __init__(self, options=None, parent=None):
-        super().__init__(parent)
-        if options is None:
-            options = ["AMD", "Intel"]
-        
-        self._options = options
-        self._current = options[1] if "Intel" in options else options[0]
-        
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        self._buttons = []
-        for i, opt in enumerate(self._options):
-            btn = QtWidgets.QPushButton(opt)
-            btn.setCheckable(True)
-            btn.setChecked(opt == self._current)
-            btn.setCursor(Qt.PointingHandCursor)
-            btn.setMinimumWidth(80)
-            btn.setMinimumHeight(32)
-            btn.clicked.connect(lambda checked, o=opt: self._on_click(o))
-            
-            base_style = f"""
-                QPushButton {{
-                    background: transparent;
-                    border: 1px solid {THEME['input_border']};
-                    color: {THEME['muted']};
-                    font-size: 13px;
-                    font-weight: 500;
-                    padding: 6px 16px;
-                }}
-                QPushButton:hover {{
-                    border-color: {THEME['input_focus']};
-                    color: {THEME['text']};
-                }}
-                QPushButton:checked {{
-                    color: {THEME['text']};
-                    border-bottom: 2px solid {THEME['accent']};
-                    border-left-color: {THEME['input_border']};
-                    border-right-color: {THEME['input_border']};
-                    border-top-color: {THEME['input_border']};
-                }}
-            """
-            
-            if i == 0:
-                btn.setStyleSheet(base_style + "border-radius: 12px 0 0 12px;")
-            elif i == len(self._options) - 1:
-                btn.setStyleSheet(base_style + "border-radius: 0 12px 12px 0;")
-            else:
-                btn.setStyleSheet(base_style)
-            
-            layout.addWidget(btn)
-            self._buttons.append(btn)
-    
-    def _on_click(self, option):
-        if self._current != option:
-            self._current = option
-            for btn in self._buttons:
-                btn.setChecked(btn.text() == option)
-            self.currentChanged.emit(option)
-    
-    def currentOption(self):
-        return self._current
-    
-    def setCurrentOption(self, option):
-        if option in self._options and option != self._current:
-            self._on_click(option)
-    
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Left, Qt.Key_Right):
-            idx = self._options.index(self._current)
-            if event.key() == Qt.Key_Left:
-                idx = max(0, idx - 1)
-            else:
-                idx = min(len(self._options) - 1, idx + 1)
-            self.setCurrentOption(self._options[idx])
-        elif event.key() == Qt.Key_Return:
-            self.currentChanged.emit(self._current)
-        super().keyPressEvent(event)
 
 
 # --------------------------------------------------------------------------------------
@@ -4012,10 +3846,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Enable presets on the right to preview settings here",
+            "Use the toggles on the right to show preset settings.",
             alignment=Qt.AlignCenter
         )
-        self.preset_placeholder.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; padding: 40px;")
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -4035,23 +3868,26 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Card header: title on left, segmented control on right
-        header_row = QtWidgets.QHBoxLayout()
-        header_row.setContentsMargins(0, 0, 0, 0)
-        header_row.setSpacing(12)
-        
-        lbl = QtWidgets.QLabel("Preset Configuration")
-        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']};")
-        header_row.addWidget(lbl, 1)
-        
-        # Segmented control for CPU family
-        self.cpuSegmented = SegmentedControl(["AMD", "Intel"])
-        header_row.addWidget(self.cpuSegmented, 0, Qt.AlignRight)
-        
+        lbl = QtWidgets.QLabel("Preset tools")
+
+        # Family switch row (no errors on toggle)
+        self.familySwitch = ToggleSwitch()
+        self.familySwitch.setObjectName("familySwitch")
+        self.familySwitch.setChecked(False)  # Intel default
+        self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
+        self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+        topCenter = QtWidgets.QHBoxLayout()
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
+        topCenter.addStretch(1)
+        topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
+        topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
+        topCenter.addStretch(1)
         centerRow = QtWidgets.QWidget()
-        centerRow.setLayout(header_row)
+        centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet("background: transparent;")
+        centerRow.setStyleSheet("background: transparent; border: none;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4128,23 +3964,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.cpuSegmented.currentChanged.connect(self._on_family_switch)        # Layout right panel with better structure
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
         rw.addWidget(lbl)
-        
-        # Divider line
-        divider1 = QtWidgets.QFrame()
-        divider1.setFrameShape(QtWidgets.QFrame.HLine)
-        divider1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider1)
-        
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        
-        # Another subtle divider
-        divider2 = QtWidgets.QFrame()
-        divider2.setFrameShape(QtWidgets.QFrame.HLine)
-        divider2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider2)
-        
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4160,7 +3982,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
-        self.lbl_page_title.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {THEME['text']};")
 
         self.btn_page_right = QtWidgets.QPushButton(">")
         self.btn_page_right.setObjectName("presetNavButton")
@@ -4489,8 +4310,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 background: transparent;
             }}
             QLineEdit:focus, QLineEdit#searchInput:focus {{
-                border: 2px solid {t['input_focus']};
+                border: 1px solid {t['input_focus']};
                 background: transparent;
+                outline: 1px solid {t['input_focus']};
+                outline-offset: -2px;
             }}
 
             /* Tables with hover effects */
@@ -4746,7 +4569,18 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.notifications.notify_error(f"Failed to create nvram_tuned.txt: {e}")
             return
 
-        # Disable import button and show progress (confirmation already done above)
+        # Confirmation dialog (safety)
+        reply = QtWidgets.QMessageBox.question(
+            self, "Confirm BIOS Import",
+            f"Import settings from:\n{self.current_path.name}\n\nThis will modify your BIOS settings. Continue?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            self.status("Import cancelled.")
+            return
+
+        # Disable import button and show progress
         self.btn_import.setEnabled(False)
         self.btn_import.setText("Importing...")
         self._current_scewin_operation = "import"
@@ -5019,13 +4853,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 combined.update(basic_map.get(name, {}))
 
         order, adv_map, enabled_map = self._current_adv_map()
-        
-        # GUARD: Ensure correct family data is used
-        if self._preset_family == "amd":
-            assert adv_map is AMD_PRESETS_ADV, "AMD family must use AMD_PRESETS_ADV"
-        else:
-            assert adv_map is INTEL_PRESETS_ADV, "Intel family must use INTEL_PRESETS_ADV"
-        
         for name in order:
             if enabled_map.get(name):
                 combined.update(adv_map.get(name, {}))
@@ -5212,73 +5039,47 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
             return
-        
-        # Track which presets are being applied
-        active_presets = []
         if self.pending_targets:
-            # Get active basic presets
-            for name in PRESET_ORDER_BASIC:
-                if self._enabled_basic.get(name):
-                    active_presets.append(name)
-            
-            # Get active advanced presets
-            order, _, enabled_map = self._current_adv_map()
-            for name in order:
-                if enabled_map.get(name):
-                    family_label = "AMD" if self._preset_family == "amd" else "Intel"
-                    active_presets.append(f"{family_label} {name}")
-            
             ch = self._apply_targets_now()
             self.status(f"Preset staged {ch} change(s).")
-        
         cnt = self.model.apply_staged()
         self.update_counts()
-        
-        # Enhanced status and notification
+        self.status(f"Applied {cnt} change(s).")
+
+        # Show toast notification with change count
         if cnt == 0:
-            self.status("No changes to apply.")
             self.notifications.notify_info("No changes to apply", duration_ms=2500)
         else:
             change_word = "change" if cnt == 1 else "changes"
-            
-            # Build status message with preset info
-            if active_presets:
-                preset_list = ", ".join(active_presets[:3])  # Show first 3
-                if len(active_presets) > 3:
-                    preset_list += f" +{len(active_presets) - 3} more"
-                self.status(f"Applied {cnt} {change_word}: {preset_list}")
-                self.notifications.notify_success(
-                    f"Applied {cnt} {change_word}",
-                    subtitle=preset_list if len(preset_list) < 50 else None,
-                    duration_ms=3500
-                )
-            else:
-                self.status(f"Applied {cnt} {change_word}.")
-                self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=3500)
+            self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=2500)
 
     def reset_config(self) -> None:
-        """Full app reset: settings, presets, search, filters, counters"""
+        """Reset all changes back to original values with confirmation"""
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
+            return
+            
+        # Get all modified rows
+        modified_rows = self.model.modified_rows()
+        if not modified_rows:
+            self.notifications.notify_info("No changes to reset", duration_ms=2500)
             return
         
         # Show custom confirmation modal
         confirmed = OutlineConfirmDialog.confirm(
             self,
             "Reset All Settings",
-            "This will revert all settings, presets, and applied changes back to default.\n\nContinue?",
+            f"Reset {len(modified_rows)} modified settings to their original values?\n\nThis cannot be undone.",
             "Reset",
             "Cancel"
         )
         
         if not confirmed:
             return
-        
-        # FULL RESET - same as app restart
-        
-        # 1. Reset all modified settings to original values
+            
+        # Reset each modified setting to its original value
         reset_count = 0
-        for row in self.model.modified_rows():
+        for row in modified_rows:
             setting = self.model._rows[row]
             
             # Reset OPTIONS type settings to original index
@@ -5299,52 +5100,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.model._applied.clear()
         self.model._staged.clear()
         
-        # 2. Clear ALL presets (Basic + Advanced)
-        if hasattr(self, 'rows_basic'):
-            for row in self.rows_basic.values():
-                if row.sw.isChecked():
-                    row.sw.setChecked(False)
-        
-        if hasattr(self, '_enabled_basic'):
-            self._enabled_basic = {k: False for k in self._enabled_basic.keys()}
-        
-        if hasattr(self, '_enabled_adv_intel'):
-            self._enabled_adv_intel = {k: False for k in self._enabled_adv_intel.keys()}
-        
-        if hasattr(self, '_enabled_adv_amd'):
-            self._enabled_adv_amd = {k: False for k in self._enabled_adv_amd.keys()}
-        
-        # Rebuild advanced presets to reflect cleared state
-        if hasattr(self, '_build_adv_page_for_family') and hasattr(self, '_preset_family'):
-            self._build_adv_page_for_family(self._preset_family)
-        
-        # Clear preset targets and table
+        # Clear any pending preset targets
         if hasattr(self, 'pending_targets'):
             self.pending_targets.clear()
         
-        if hasattr(self, 'presetProxy'):
-            self.presetProxy.setNameSet(None)
-        
-        if hasattr(self, 'presetTable'):
-            self.presetTable.setVisible(False)
-            self.presetTable.horizontalHeader().setVisible(False)
-        
-        if hasattr(self, 'preset_placeholder'):
-            self.preset_placeholder.setVisible(True)
-        
-        # 3. Clear search filter
-        if hasattr(self, 'search'):
-            self.search.clear()
-        
-        # 4. Update the UI
+        # Update the UI
         self.update_counts()
-        self.status(f"Full reset complete: {reset_count} settings restored, presets cleared, filters reset.")
+        self.status(f"Reset {reset_count} change(s) to original values.")
         
         # Show success notification
         if reset_count > 0:
-            self.notifications.notify_success(f"Full reset: {reset_count} settings + all presets", duration_ms=2500)
+            change_word = "change" if reset_count == 1 else "changes"
+            self.notifications.notify_success(f"Reset {reset_count} {change_word}", duration_ms=2500)
         else:
-            self.notifications.notify_info("Reset complete (no changes to restore)", duration_ms=2500)
+            self.notifications.notify_info("No changes to reset", duration_ms=2500)
 
     def update_counts(self) -> None:
         edited, applied = self.model.get_counts()

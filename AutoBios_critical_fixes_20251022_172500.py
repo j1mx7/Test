@@ -2592,11 +2592,6 @@ class ToastNotification(QtWidgets.QFrame):
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setObjectName("ToastBubble")
         self.setAutoFillBackground(False)
-        
-        # Setup opacity effect for fade animations
-        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self._opacity_effect)
-        self._opacity_effect.setOpacity(1.0)
 
         # Unified rounded toast styling - matches all toasts
         self.setStyleSheet(f"""
@@ -2702,7 +2697,7 @@ class ToastNotification(QtWidgets.QFrame):
         self.adjustSize()
 
         # Animations
-        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
         self.fade_anim.setDuration(200)
         self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
@@ -2746,48 +2741,36 @@ class ToastNotification(QtWidgets.QFrame):
         return pixmap
 
     def show_toast(self, parent_widget):
-        """Show toast at top-right with slide-down animation"""
-        # Position at top-right of parent (below custom title bar)
+        """Show toast with slide-up animation"""
+        # Position at bottom center of parent
         parent_rect = parent_widget.geometry()
-        
-        # Title bar height + margins
-        title_bar_height = 40
-        top_margin = 16
-        right_margin = 16
-        
-        # Final position (top-right, below title bar)
-        final_x = parent_rect.right() - self.width() - right_margin
-        final_y = parent_rect.top() + title_bar_height + top_margin
+        parent_center_x = parent_rect.center().x()
+        parent_bottom_y = parent_rect.bottom()
 
-        # Start position (above screen for slide-down)
-        start_x = final_x
-        start_y = parent_rect.top() - self.height()
+        # Start position (below screen)
+        start_x = parent_center_x - self.width() // 2
+        start_y = parent_bottom_y
+
+        # End position (visible, 60px from bottom)
+        end_x = start_x
+        end_y = parent_bottom_y - self.height() - 60
 
         self.move(start_x, start_y)
         self.show()
-        self._opacity_effect.setOpacity(0.0)  # Start fully transparent
 
         # Fade in
         self.fade_anim.setStartValue(0.0)
-        self.fade_anim.setEndValue(0.96)  # Slightly transparent
+        self.fade_anim.setEndValue(1.0)
         self.fade_anim.start()
 
-        # Slide down
+        # Slide up
         self.slide_anim.setStartValue(QtCore.QPoint(start_x, start_y))
-        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(end_x, end_y))
         self.slide_anim.start()
 
     def hide_toast(self):
-        """Hide toast with slide-up and fade-out animation"""
-        # Slide up slightly while fading
-        current_pos = self.pos()
-        self.slide_anim.setStartValue(current_pos)
-        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 20))
-        self.slide_anim.setDuration(200)
-        self.slide_anim.start()
-        
-        # Fade out
-        self.fade_anim.setStartValue(self._opacity_effect.opacity())
+        """Hide toast with fade-out animation"""
+        self.fade_anim.setStartValue(self.windowOpacity())
         self.fade_anim.setEndValue(0.0)
         self.fade_anim.finished.connect(self.deleteLater)
         self.fade_anim.start()
@@ -2918,7 +2901,7 @@ class NotificationManager(QtCore.QObject):
         self._last_messages[key] = now
         return True
 
-    def notify_success(self, text: str, duration_ms: int = 3500, subtitle: str = None):
+    def notify_success(self, text: str, duration_ms: int = 2200, subtitle: str = None):
         """Show success toast (no action buttons)"""
         if not self._should_show(text):
             return
@@ -3566,136 +3549,27 @@ class CustomTitleBar(QtWidgets.QWidget):
 # Preset row widget
 # --------------------------------------------------------------------------------------
 class PresetRow(QtWidgets.QWidget):
-    """Preset toggle row with hairline divider"""
     toggled = Signal(str, bool)  # preset_name, enabled
 
     def __init__(self, name: str, on: bool = False, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent;")
         self.name = name
-        
-        # Main layout with divider
-        main_lay = QtWidgets.QVBoxLayout(self)
-        main_lay.setContentsMargins(0, 0, 0, 0)
-        main_lay.setSpacing(0)
-        
-        # Row content
-        row = QtWidgets.QWidget()
-        row.setStyleSheet("background: transparent;")
-        lay = QtWidgets.QHBoxLayout(row)
-        lay.setContentsMargins(12, 10, 12, 10)
-        lay.setSpacing(12)
+        lay = QtWidgets.QHBoxLayout(self)
+        lay.setContentsMargins(10, 8, 10, 8)
+        lay.setSpacing(8)
 
         self.lbl = QtWidgets.QLabel(name)
-        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px;")
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-        self.sw = ToggleSwitch(self, width=48, height=26)
+        self.sw = ToggleSwitch(self)
         self.sw.setChecked(on)
+        # precise binding
         self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
 
         lay.addWidget(self.lbl, 1)
         lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
-        
-        main_lay.addWidget(row)
-        
-        # Hairline divider
-        divider = QtWidgets.QFrame()
-        divider.setFrameShape(QtWidgets.QFrame.HLine)
-        divider.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px;")
-        main_lay.addWidget(divider)
-
-
-
-# --------------------------------------------------------------------------------------
-# Segmented Control (Premium CPU Family Selector)
-# --------------------------------------------------------------------------------------
-class SegmentedControl(QtWidgets.QWidget):
-    """Clean segmented control for AMD/Intel selection"""
-    currentChanged = Signal(str)  # Emits "AMD" or "Intel"
-    
-    def __init__(self, options=None, parent=None):
-        super().__init__(parent)
-        if options is None:
-            options = ["AMD", "Intel"]
-        
-        self._options = options
-        self._current = options[1] if "Intel" in options else options[0]
-        
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        self._buttons = []
-        for i, opt in enumerate(self._options):
-            btn = QtWidgets.QPushButton(opt)
-            btn.setCheckable(True)
-            btn.setChecked(opt == self._current)
-            btn.setCursor(Qt.PointingHandCursor)
-            btn.setMinimumWidth(80)
-            btn.setMinimumHeight(32)
-            btn.clicked.connect(lambda checked, o=opt: self._on_click(o))
-            
-            base_style = f"""
-                QPushButton {{
-                    background: transparent;
-                    border: 1px solid {THEME['input_border']};
-                    color: {THEME['muted']};
-                    font-size: 13px;
-                    font-weight: 500;
-                    padding: 6px 16px;
-                }}
-                QPushButton:hover {{
-                    border-color: {THEME['input_focus']};
-                    color: {THEME['text']};
-                }}
-                QPushButton:checked {{
-                    color: {THEME['text']};
-                    border-bottom: 2px solid {THEME['accent']};
-                    border-left-color: {THEME['input_border']};
-                    border-right-color: {THEME['input_border']};
-                    border-top-color: {THEME['input_border']};
-                }}
-            """
-            
-            if i == 0:
-                btn.setStyleSheet(base_style + "border-radius: 12px 0 0 12px;")
-            elif i == len(self._options) - 1:
-                btn.setStyleSheet(base_style + "border-radius: 0 12px 12px 0;")
-            else:
-                btn.setStyleSheet(base_style)
-            
-            layout.addWidget(btn)
-            self._buttons.append(btn)
-    
-    def _on_click(self, option):
-        if self._current != option:
-            self._current = option
-            for btn in self._buttons:
-                btn.setChecked(btn.text() == option)
-            self.currentChanged.emit(option)
-    
-    def currentOption(self):
-        return self._current
-    
-    def setCurrentOption(self, option):
-        if option in self._options and option != self._current:
-            self._on_click(option)
-    
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Left, Qt.Key_Right):
-            idx = self._options.index(self._current)
-            if event.key() == Qt.Key_Left:
-                idx = max(0, idx - 1)
-            else:
-                idx = min(len(self._options) - 1, idx + 1)
-            self.setCurrentOption(self._options[idx])
-        elif event.key() == Qt.Key_Return:
-            self.currentChanged.emit(self._current)
-        super().keyPressEvent(event)
 
 
 # --------------------------------------------------------------------------------------
@@ -4012,10 +3886,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Enable presets on the right to preview settings here",
+            "Use the toggles on the right to show preset settings.",
             alignment=Qt.AlignCenter
         )
-        self.preset_placeholder.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; padding: 40px;")
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -4035,23 +3908,26 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Card header: title on left, segmented control on right
-        header_row = QtWidgets.QHBoxLayout()
-        header_row.setContentsMargins(0, 0, 0, 0)
-        header_row.setSpacing(12)
-        
-        lbl = QtWidgets.QLabel("Preset Configuration")
-        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']};")
-        header_row.addWidget(lbl, 1)
-        
-        # Segmented control for CPU family
-        self.cpuSegmented = SegmentedControl(["AMD", "Intel"])
-        header_row.addWidget(self.cpuSegmented, 0, Qt.AlignRight)
-        
+        lbl = QtWidgets.QLabel("Preset tools")
+
+        # Family switch row (no errors on toggle)
+        self.familySwitch = ToggleSwitch()
+        self.familySwitch.setObjectName("familySwitch")
+        self.familySwitch.setChecked(False)  # Intel default
+        self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
+        self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+        topCenter = QtWidgets.QHBoxLayout()
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
+        topCenter.addStretch(1)
+        topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
+        topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
+        topCenter.addStretch(1)
         centerRow = QtWidgets.QWidget()
-        centerRow.setLayout(header_row)
+        centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet("background: transparent;")
+        centerRow.setStyleSheet("background: transparent; border: none;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4128,23 +4004,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.cpuSegmented.currentChanged.connect(self._on_family_switch)        # Layout right panel with better structure
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
         rw.addWidget(lbl)
-        
-        # Divider line
-        divider1 = QtWidgets.QFrame()
-        divider1.setFrameShape(QtWidgets.QFrame.HLine)
-        divider1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider1)
-        
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        
-        # Another subtle divider
-        divider2 = QtWidgets.QFrame()
-        divider2.setFrameShape(QtWidgets.QFrame.HLine)
-        divider2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider2)
-        
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4160,7 +4022,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
-        self.lbl_page_title.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {THEME['text']};")
 
         self.btn_page_right = QtWidgets.QPushButton(">")
         self.btn_page_right.setObjectName("presetNavButton")
@@ -4489,8 +4350,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 background: transparent;
             }}
             QLineEdit:focus, QLineEdit#searchInput:focus {{
-                border: 2px solid {t['input_focus']};
+                border: 1px solid {t['input_focus']};
                 background: transparent;
+                outline: 1px solid {t['input_focus']};
+                outline-offset: -2px;
             }}
 
             /* Tables with hover effects */
@@ -4746,7 +4609,18 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.notifications.notify_error(f"Failed to create nvram_tuned.txt: {e}")
             return
 
-        # Disable import button and show progress (confirmation already done above)
+        # Confirmation dialog (safety)
+        reply = QtWidgets.QMessageBox.question(
+            self, "Confirm BIOS Import",
+            f"Import settings from:\n{self.current_path.name}\n\nThis will modify your BIOS settings. Continue?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            self.status("Import cancelled.")
+            return
+
+        # Disable import button and show progress
         self.btn_import.setEnabled(False)
         self.btn_import.setText("Importing...")
         self._current_scewin_operation = "import"
@@ -5019,13 +4893,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 combined.update(basic_map.get(name, {}))
 
         order, adv_map, enabled_map = self._current_adv_map()
-        
-        # GUARD: Ensure correct family data is used
-        if self._preset_family == "amd":
-            assert adv_map is AMD_PRESETS_ADV, "AMD family must use AMD_PRESETS_ADV"
-        else:
-            assert adv_map is INTEL_PRESETS_ADV, "Intel family must use INTEL_PRESETS_ADV"
-        
         for name in order:
             if enabled_map.get(name):
                 combined.update(adv_map.get(name, {}))
@@ -5212,49 +5079,19 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
             return
-        
-        # Track which presets are being applied
-        active_presets = []
         if self.pending_targets:
-            # Get active basic presets
-            for name in PRESET_ORDER_BASIC:
-                if self._enabled_basic.get(name):
-                    active_presets.append(name)
-            
-            # Get active advanced presets
-            order, _, enabled_map = self._current_adv_map()
-            for name in order:
-                if enabled_map.get(name):
-                    family_label = "AMD" if self._preset_family == "amd" else "Intel"
-                    active_presets.append(f"{family_label} {name}")
-            
             ch = self._apply_targets_now()
             self.status(f"Preset staged {ch} change(s).")
-        
         cnt = self.model.apply_staged()
         self.update_counts()
-        
-        # Enhanced status and notification
+        self.status(f"Applied {cnt} change(s).")
+
+        # Show toast notification with change count
         if cnt == 0:
-            self.status("No changes to apply.")
             self.notifications.notify_info("No changes to apply", duration_ms=2500)
         else:
             change_word = "change" if cnt == 1 else "changes"
-            
-            # Build status message with preset info
-            if active_presets:
-                preset_list = ", ".join(active_presets[:3])  # Show first 3
-                if len(active_presets) > 3:
-                    preset_list += f" +{len(active_presets) - 3} more"
-                self.status(f"Applied {cnt} {change_word}: {preset_list}")
-                self.notifications.notify_success(
-                    f"Applied {cnt} {change_word}",
-                    subtitle=preset_list if len(preset_list) < 50 else None,
-                    duration_ms=3500
-                )
-            else:
-                self.status(f"Applied {cnt} {change_word}.")
-                self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=3500)
+            self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=2500)
 
     def reset_config(self) -> None:
         """Full app reset: settings, presets, search, filters, counters"""

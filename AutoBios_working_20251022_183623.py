@@ -2793,6 +2793,275 @@ class ToastNotification(QtWidgets.QFrame):
         self.fade_anim.start()
 
 
+
+# ============================================================================
+# PROFESSIONAL TOAST NOTIFICATION SYSTEM
+# ============================================================================
+
+class ProToastWidget(QtWidgets.QFrame):
+    """
+    Professional toast notification with modern design.
+    Features: icons, title, body, action button, close button, smooth animations.
+    """
+    
+    closed = Signal()
+    
+    def __init__(self, toast_type: str, title: str, body: str = "", action_text: str = "", parent=None):
+        super().__init__(parent)
+        self.toast_type = toast_type
+        self.title_text = title
+        self.body_text = body
+        self._timer_paused = False
+        self._dismiss_timer = None
+        self._duplicate_count = 1
+        
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setFixedWidth(380)
+        self.setMaximumHeight(150)
+        
+        # Opacity effect for animations
+        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self._opacity_effect)
+        self._opacity_effect.setOpacity(0.0)
+        
+        # Style
+        self.setStyleSheet(f"""
+            ProToastWidget {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 12px;
+            }}
+        """)
+        
+        # Layout
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(12)
+        
+        # Icon and color
+        icon_map = {"info": "ℹ", "success": "✓", "warning": "⚠", "error": "✕"}
+        color_map = {
+            "info": THEME['accent'],
+            "success": THEME['success'],
+            "warning": THEME['warn'],
+            "error": THEME['error']
+        }
+        
+        icon_label = QtWidgets.QLabel(icon_map.get(toast_type, "ℹ"))
+        icon_label.setStyleSheet(f"""
+            QLabel {{
+                color: {color_map.get(toast_type, THEME['accent'])};
+                font-size: 20px;
+                font-weight: 600;
+                background: transparent;
+                min-width: 24px;
+            }}
+        """)
+        layout.addWidget(icon_label)
+        
+        # Content
+        content_layout = QtWidgets.QVBoxLayout()
+        content_layout.setSpacing(4)
+        
+        # Title with counter
+        title_layout = QtWidgets.QHBoxLayout()
+        self.title_label = QtWidgets.QLabel(title)
+        self.title_label.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600; background: transparent;")
+        title_layout.addWidget(self.title_label, 1)
+        
+        self.count_label = QtWidgets.QLabel()
+        self.count_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 12px; background: transparent;")
+        self.count_label.hide()
+        title_layout.addWidget(self.count_label)
+        content_layout.addLayout(title_layout)
+        
+        # Body
+        if body:
+            body_label = QtWidgets.QLabel(body)
+            body_label.setWordWrap(True)
+            body_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 12px; background: transparent;")
+            content_layout.addWidget(body_label)
+        
+        layout.addLayout(content_layout, 1)
+        
+        # Close button
+        close_btn = QtWidgets.QPushButton("×")
+        close_btn.setFixedSize(24, 24)
+        close_btn.setCursor(Qt.PointingHandCursor)
+        close_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: none;
+                color: {THEME['muted']};
+                font-size: 20px;
+            }}
+            QPushButton:hover {{ color: {THEME['text']}; }}
+        """)
+        close_btn.clicked.connect(self.close_toast)
+        layout.addWidget(close_btn)
+        
+        # Animations
+        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim.setDuration(200)
+        
+        self.slide_anim = QtCore.QPropertyAnimation(self, b"pos")
+        self.slide_anim.setDuration(250)
+        self.slide_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        
+        # Auto-dismiss (except errors)
+        if toast_type != "error":
+            self._dismiss_timer = QtCore.QTimer(self)
+            self._dismiss_timer.setSingleShot(True)
+            self._dismiss_timer.timeout.connect(self.close_toast)
+            self._dismiss_timer.start(4000)
+    
+    def increment_count(self):
+        """Increment duplicate counter"""
+        self._duplicate_count += 1
+        self.count_label.setText(f"×{self._duplicate_count}")
+        self.count_label.show()
+        if self._dismiss_timer:
+            self._dismiss_timer.start(4000)
+    
+    def enterEvent(self, event):
+        """Pause timer on hover"""
+        if self._dismiss_timer and self._dismiss_timer.isActive():
+            self._dismiss_timer.stop()
+            self._timer_paused = True
+        super().enterEvent(event)
+    
+    def leaveEvent(self, event):
+        """Resume timer"""
+        if self._timer_paused and self._dismiss_timer:
+            self._dismiss_timer.start(2000)
+            self._timer_paused = False
+        super().leaveEvent(event)
+    
+    def keyPressEvent(self, event):
+        """ESC closes"""
+        if event.key() == Qt.Key_Escape:
+            self.close_toast()
+        super().keyPressEvent(event)
+    
+    def show_toast(self, parent_widget, position: int):
+        """Show with animation"""
+        parent_rect = parent_widget.rect()
+        parent_pos = parent_widget.mapToGlobal(QtCore.QPoint(0, 0))
+        
+        margin = 16
+        title_bar_height = 60
+        spacing = 12
+        
+        final_x = parent_pos.x() + parent_rect.width() - self.width() - margin
+        final_y = parent_pos.y() + title_bar_height + margin + (position * (self.height() + spacing))
+        start_y = final_y - 30
+        
+        self.move(final_x, start_y)
+        self.show()
+        
+        self.fade_anim.setStartValue(0.0)
+        self.fade_anim.setEndValue(1.0)
+        self.fade_anim.start()
+        
+        self.slide_anim.setStartValue(QtCore.QPoint(final_x, start_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
+        self.slide_anim.start()
+    
+    def close_toast(self):
+        """Close with animation"""
+        current_pos = self.pos()
+        self.slide_anim.setStartValue(current_pos)
+        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 20))
+        self.slide_anim.start()
+        
+        self.fade_anim.setStartValue(self._opacity_effect.opacity())
+        self.fade_anim.setEndValue(0.0)
+        self.fade_anim.finished.connect(lambda: (self.closed.emit(), self.deleteLater()))
+        self.fade_anim.start()
+
+
+class ProToastManager(QtCore.QObject):
+    """
+    Professional toast manager with queue, deduplication, and positioning.
+    Max 4 toasts visible.
+    """
+    
+    def __init__(self, parent_widget):
+        super().__init__()
+        self.parent_widget = parent_widget
+        self.toasts: list = []
+        self._last_messages: dict = {}
+        self.max_toasts = 4
+    
+    def _get_key(self, toast_type: str, title: str, body: str) -> str:
+        return f"{toast_type}:{title}:{body}"
+    
+    def _should_dedupe(self, key: str):
+        """Check for duplicate within 2s"""
+        import time
+        now = time.time()
+        
+        if key in self._last_messages and now - self._last_messages[key] < 2.0:
+            for toast in self.toasts:
+                if self._get_key(toast.toast_type, toast.title_text, toast.body_text) == key:
+                    return toast
+        
+        self._last_messages[key] = now
+        return None
+    
+    def _reposition(self):
+        """Reposition all toasts"""
+        for i, toast in enumerate(self.toasts):
+            parent_rect = self.parent_widget.rect()
+            parent_pos = self.parent_widget.mapToGlobal(QtCore.QPoint(0, 0))
+            
+            final_x = parent_pos.x() + parent_rect.width() - toast.width() - 16
+            final_y = parent_pos.y() + 60 + 16 + (i * (toast.height() + 12))
+            
+            toast.slide_anim.setStartValue(toast.pos())
+            toast.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
+            toast.slide_anim.start()
+    
+    def _show(self, toast_type: str, title: str, body: str = ""):
+        """Show toast"""
+        key = self._get_key(toast_type, title, body)
+        
+        existing = self._should_dedupe(key)
+        if existing:
+            existing.increment_count()
+            return
+        
+        if len(self.toasts) >= self.max_toasts:
+            self.toasts[0].close_toast()
+        
+        toast = ProToastWidget(toast_type, title, body, "", self.parent_widget)
+        toast.closed.connect(lambda: self._on_closed(toast))
+        
+        self.toasts.append(toast)
+        toast.show_toast(self.parent_widget, len(self.toasts) - 1)
+    
+    def _on_closed(self, toast):
+        """Handle close"""
+        if toast in self.toasts:
+            self.toasts.remove(toast)
+            self._reposition()
+    
+    def info(self, title: str, body: str = ""):
+        self._show("info", title, body)
+    
+    def success(self, title: str, body: str = ""):
+        self._show("success", title, body)
+    
+    def warning(self, title: str, body: str = ""):
+        self._show("warning", title, body)
+    
+    def error(self, title: str, body: str = ""):
+        self._show("error", title, body)
+
+
+
 class LoadingSpinner(QtWidgets.QWidget):
     """Modern loading spinner with smooth animation"""
     
@@ -3566,136 +3835,27 @@ class CustomTitleBar(QtWidgets.QWidget):
 # Preset row widget
 # --------------------------------------------------------------------------------------
 class PresetRow(QtWidgets.QWidget):
-    """Preset toggle row with hairline divider"""
     toggled = Signal(str, bool)  # preset_name, enabled
 
     def __init__(self, name: str, on: bool = False, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent;")
         self.name = name
-        
-        # Main layout with divider
-        main_lay = QtWidgets.QVBoxLayout(self)
-        main_lay.setContentsMargins(0, 0, 0, 0)
-        main_lay.setSpacing(0)
-        
-        # Row content
-        row = QtWidgets.QWidget()
-        row.setStyleSheet("background: transparent;")
-        lay = QtWidgets.QHBoxLayout(row)
-        lay.setContentsMargins(12, 10, 12, 10)
-        lay.setSpacing(12)
+        lay = QtWidgets.QHBoxLayout(self)
+        lay.setContentsMargins(10, 8, 10, 8)
+        lay.setSpacing(8)
 
         self.lbl = QtWidgets.QLabel(name)
-        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px;")
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-        self.sw = ToggleSwitch(self, width=48, height=26)
+        self.sw = ToggleSwitch(self)
         self.sw.setChecked(on)
+        # precise binding
         self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
 
         lay.addWidget(self.lbl, 1)
         lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
-        
-        main_lay.addWidget(row)
-        
-        # Hairline divider
-        divider = QtWidgets.QFrame()
-        divider.setFrameShape(QtWidgets.QFrame.HLine)
-        divider.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px;")
-        main_lay.addWidget(divider)
-
-
-
-# --------------------------------------------------------------------------------------
-# Segmented Control (Premium CPU Family Selector)
-# --------------------------------------------------------------------------------------
-class SegmentedControl(QtWidgets.QWidget):
-    """Clean segmented control for AMD/Intel selection"""
-    currentChanged = Signal(str)  # Emits "AMD" or "Intel"
-    
-    def __init__(self, options=None, parent=None):
-        super().__init__(parent)
-        if options is None:
-            options = ["AMD", "Intel"]
-        
-        self._options = options
-        self._current = options[1] if "Intel" in options else options[0]
-        
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        self._buttons = []
-        for i, opt in enumerate(self._options):
-            btn = QtWidgets.QPushButton(opt)
-            btn.setCheckable(True)
-            btn.setChecked(opt == self._current)
-            btn.setCursor(Qt.PointingHandCursor)
-            btn.setMinimumWidth(80)
-            btn.setMinimumHeight(32)
-            btn.clicked.connect(lambda checked, o=opt: self._on_click(o))
-            
-            base_style = f"""
-                QPushButton {{
-                    background: transparent;
-                    border: 1px solid {THEME['input_border']};
-                    color: {THEME['muted']};
-                    font-size: 13px;
-                    font-weight: 500;
-                    padding: 6px 16px;
-                }}
-                QPushButton:hover {{
-                    border-color: {THEME['input_focus']};
-                    color: {THEME['text']};
-                }}
-                QPushButton:checked {{
-                    color: {THEME['text']};
-                    border-bottom: 2px solid {THEME['accent']};
-                    border-left-color: {THEME['input_border']};
-                    border-right-color: {THEME['input_border']};
-                    border-top-color: {THEME['input_border']};
-                }}
-            """
-            
-            if i == 0:
-                btn.setStyleSheet(base_style + "border-radius: 12px 0 0 12px;")
-            elif i == len(self._options) - 1:
-                btn.setStyleSheet(base_style + "border-radius: 0 12px 12px 0;")
-            else:
-                btn.setStyleSheet(base_style)
-            
-            layout.addWidget(btn)
-            self._buttons.append(btn)
-    
-    def _on_click(self, option):
-        if self._current != option:
-            self._current = option
-            for btn in self._buttons:
-                btn.setChecked(btn.text() == option)
-            self.currentChanged.emit(option)
-    
-    def currentOption(self):
-        return self._current
-    
-    def setCurrentOption(self, option):
-        if option in self._options and option != self._current:
-            self._on_click(option)
-    
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Left, Qt.Key_Right):
-            idx = self._options.index(self._current)
-            if event.key() == Qt.Key_Left:
-                idx = max(0, idx - 1)
-            else:
-                idx = min(len(self._options) - 1, idx + 1)
-            self.setCurrentOption(self._options[idx])
-        elif event.key() == Qt.Key_Return:
-            self.currentChanged.emit(self._current)
-        super().keyPressEvent(event)
 
 
 # --------------------------------------------------------------------------------------
@@ -4012,10 +4172,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         lw.addWidget(self.presetTable, 1)
 
         self.preset_placeholder = QtWidgets.QLabel(
-            "Enable presets on the right to preview settings here",
+            "Use the toggles on the right to show preset settings.",
             alignment=Qt.AlignCenter
         )
-        self.preset_placeholder.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; padding: 40px;")
         lw.addWidget(self.preset_placeholder, 1)
         self.presetTable.horizontalHeader().setVisible(False)
         self.presetTable.setVisible(False)
@@ -4035,23 +4194,26 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Card header: title on left, segmented control on right
-        header_row = QtWidgets.QHBoxLayout()
-        header_row.setContentsMargins(0, 0, 0, 0)
-        header_row.setSpacing(12)
-        
-        lbl = QtWidgets.QLabel("Preset Configuration")
-        lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']};")
-        header_row.addWidget(lbl, 1)
-        
-        # Segmented control for CPU family
-        self.cpuSegmented = SegmentedControl(["AMD", "Intel"])
-        header_row.addWidget(self.cpuSegmented, 0, Qt.AlignRight)
-        
+        lbl = QtWidgets.QLabel("Preset tools")
+
+        # Family switch row (no errors on toggle)
+        self.familySwitch = ToggleSwitch()
+        self.familySwitch.setObjectName("familySwitch")
+        self.familySwitch.setChecked(False)  # Intel default
+        self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
+        self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+        topCenter = QtWidgets.QHBoxLayout()
+        topCenter.setContentsMargins(0, 0, 0, 0)
+        topCenter.setSpacing(10)
+        topCenter.addStretch(1)
+        topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
+        topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
+        topCenter.addStretch(1)
         centerRow = QtWidgets.QWidget()
-        centerRow.setLayout(header_row)
+        centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
-        centerRow.setStyleSheet("background: transparent;")
+        centerRow.setStyleSheet("background: transparent; border: none;")
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -4128,23 +4290,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.cpuSegmented.currentChanged.connect(self._on_family_switch)        # Layout right panel with better structure
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right
         rw.addWidget(lbl)
-        
-        # Divider line
-        divider1 = QtWidgets.QFrame()
-        divider1.setFrameShape(QtWidgets.QFrame.HLine)
-        divider1.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider1)
-        
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        
-        # Another subtle divider
-        divider2 = QtWidgets.QFrame()
-        divider2.setFrameShape(QtWidgets.QFrame.HLine)
-        divider2.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 8px 0;")
-        rw.addWidget(divider2)
-        
         rw.addWidget(self.scroll, 1)
 
         # New Page Navigation with Arrows
@@ -4160,7 +4308,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
-        self.lbl_page_title.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {THEME['text']};")
 
         self.btn_page_right = QtWidgets.QPushButton(">")
         self.btn_page_right.setObjectName("presetNavButton")
@@ -4237,6 +4384,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         # Initialize loading components
         self._init_loading_components()
+        
+        # Professional toast system
+        self.toast = ProToastManager(self)
         
         # Premium fade-in animation
         self._init_fade_in_animation()

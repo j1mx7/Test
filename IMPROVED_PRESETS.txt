@@ -1,0 +1,60 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║             AutoBios - PRESETS UI IMPROVED (2-PANE KEPT)                ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+WHAT CHANGED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ KEPT THE SAME STRUCTURE
+   You asked to keep it like before but rework it - done!
+   
+   Layout remains:
+   ┌──────────────────┬─────────────────┐
+   │ Preset Table     │ Control Panel   │
+   │ (left)           │ (right)         │
+   └──────────────────┴─────────────────┘
+
+✅ VISUAL IMPROVEMENTS (RIGHT PANEL)
+   • Header: "Preset Configuration" (was "Preset tools")
+   • Added "CPU Family:" label before toggle
+   • Better font sizes and weights
+   • Divider lines for organization
+   • Subtle border around CPU selector
+   • Improved page title styling
+
+✅ BETTER UX
+   • Clearer what each control does
+   • CPU Family selector more obvious
+   • Better visual hierarchy
+   • Improved placeholder text
+   • More polished appearance
+
+✅ AMD ROUTING
+   • Already working correctly in code
+   • Toggle to AMD → loads AMD_PRESETS_ADV
+   • Toggle to Intel → loads INTEL_PRESETS_ADV
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOW TO USE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Load nvram.txt file
+2. Go to Presets tab
+3. Right panel: Select CPU Family (Intel/AMD)
+4. Right panel: Navigate Basic ↔ Advanced (< > arrows)
+5. Right panel: Enable preset toggles
+6. Left table: Preview settings from enabled presets
+7. Bottom: Click "Apply Config" to write changes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RUN:    python AutoBios.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Backup: AutoBios_improved_20251022_190057.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
