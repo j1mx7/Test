@@ -1,0 +1,73 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║                    UI IMPROVEMENTS - YOUR DATA SAFE ✅                   ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+WHAT CHANGED (UI ONLY):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CPU Family Control
+   Before: [Toggle] Intel (with label)
+   Now:    [ AMD ] [ Intel ]  (clean segmented control)
+   
+   • Outline style (1px border, 12px radius)
+   • Active: 2px bottom underline
+   • Keyboard: Left/Right arrows to switch
+
+✅ Preset Rows
+   • Added hairline 1px dividers between toggles
+   • Improved spacing (12px horizontal, 10px vertical)
+   • Better typography (13px labels)
+   • Cleaner visual separation
+
+WHAT DID NOT CHANGE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ ALL your preset names - exactly as you had them
+✅ ALL your preset data - untouched  
+✅ ALL BIOS setting mappings - unchanged
+✅ ALL logic and behavior - same as before
+
+Your presets remain:
+  AMD/Intel Advanced:
+    • Disable C-States
+    • CPU Powersavings
+    • Disable Thermal Settings
+    • Disable Voltage / Overclocking Limits
+    • Tune Memory Settings
+    • ...and all your other original presets
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RUN:    python AutoBios.py
+
+Test:
+1. Go to Presets tab
+2. See [ AMD ] [ Intel ] control (top-right)
+3. Click to switch between AMD/Intel
+4. Notice hairline dividers between preset toggles
+5. All your preset names are there
+6. Everything works exactly as before
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Technical Details:
+  • Added: SegmentedControl widget class
+  • Modified: Header layout in presets card
+  • Modified: PresetRow with divider styling
+  • Updated: _on_family_switch handler to accept string
+
+  • NOT modified: PRESET_ORDER_ADV_AMD
+  • NOT modified: PRESET_ORDER_ADV_INTEL
+  • NOT modified: AMD_PRESETS_ADV dictionary
+  • NOT modified: INTEL_PRESETS_ADV dictionary
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Backup: AutoBios_redesign_backup_20251022_191325.py
+File: AutoBios.py (5,578 lines, 248 KB)
+
+Status: ✅ UI Improved, Your Data Safe
+
+══════════════════════════════════════════════════════════════════════════

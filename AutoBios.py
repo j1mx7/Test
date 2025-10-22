@@ -845,104 +845,80 @@ AMD_PRESETS_BASIC: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# ADVANCED presets — Distinct AMD vs Intel vendor-specific options
-# These names map to the actual BIOS setting groups in the dictionaries below
+# ADVANCED presets (page 2) — dummy example names per family
 PRESET_ORDER_ADV_INTEL = [
-"Speed Shift (HWP)",
-"Turbo Boost Power Limits",
-"Package C-States",
-"ICC Max Current",
-"DPTF Thermal Limits",
+"Disable C-States",
+"CPU Powersavings",
 "Disable Thermal Settings",
-"Memory Power Management",
-"PCI Delay Optimization",
+"Disable Voltage / Overclocking Limits",
+"Tune Memory Settings",
+"Enable PCI Delay Optimization",
 "Disable Snoop",
-"Hyper-Threading Control",
-"PCIe ASPM & ClkReq",
-"Frequency & VRM Settings",
-"Clock Gating Control",
-"Spread Spectrum Control",
-"Sleep & Standby States",
-"WakeOn Events",
-"Security & TPM",
-"Virtualization (VT-x/VT-d)",
-"Error Handling & Logging",
-"PCH & Chipset Settings",
-"EC & Platform Tweaks",
-"Audio & USB Power",
-"RGB & LED Control",
-"PEP & Modern Standby",
-"Legacy Support",
+"Disable Hyper Threading",
+"Disable ClkReq",
+"Frequency Settings",
+"PCIe Management", 
+"Disable Gating",
+"Disable Spread Spectrum",
+"Disable Sleep States",
+"Disable WakeOn",
+"Disable Security",
+"Disable TPM & Secure Boot",
+"Disable Virtualization",
+"Disable Error Handling",
+"Disable PCH Settings",
+"Tune EC Settings",
+"Disable Audio",
+"Disable RGB",
+"Disable PEP",
+"Disable Legacy",
 ]
-
 PRESET_ORDER_ADV_AMD = [
-"CPPC & Preferred Cores",
-"PBO & Scalar Limits",
-"Global C-State Control",
-"Memory PowerDown Modes",
-"SMU Debug & Telemetry",
+"Disable C-States",
+"CPU Powersavings",
 "Disable Thermal Settings",
-"CBS Memory Tuning",
-"PCI Delay Optimization",
+"Disable Voltage / Overclocking Limits",
+"Tune Memory Settings",
+"Enable PCI Delay Optimization",
 "Disable Snoop",
-"SMT Control",
-"PCIe ASPM & ClkReq",
-"Frequency & SoC Settings",
-"Clock Gating Control",
-"Spread Spectrum Control",
-"Sleep & Standby States",
-"WakeOn Events",
-"Security & fTPM",
-"Virtualization (SVM)",
-"Error Handling & Logging",
-"FCH & Chipset Settings",
-"EC & Platform Tweaks",
-"Audio & USB Power",
-"RGB & LED Control",
-"PEP & S0I3 Limits",
-"Legacy Support",
+"Disable Hyper Threading",
+"Disable ClkReq",
+"Frequency Settings",
+"PCIe Management",
+"Disable Gating",
+"Disable Spread Spectrum",
+"Disable Sleep States",
+"Disable WakeOn",
+"Disable Security",
+"Disable TPM & Secure Boot",
+"Disable Virtualization",
+"Disable Error Handling",
+"Disable PCH Settings",
+"Tune EC Settings",
+"Disable Audio",
+"Disable RGB",
+"Disable PEP",
+"Disable Legacy",
 ]
 
 AMD_PRESETS_ADV: Dict[str, Dict[str, Any]] = {
-    "CPPC & Preferred Cores": {
-        "CPPC": ["Enable", "Enabled", "Auto"],
-        "CPPC Preferred Cores": ["Enable", "Enabled", "Auto"],
-        "AMD Cool&Quiet function": ['Disable', 'Disabled'],
-        "PSS Support": ['Disable', 'Disabled'],
-    },
-
-    "PBO & Scalar Limits": {
-        "Precision Boost Overdrive": ["Enable", "Enabled", "Auto"],
-        "PBO Scalar": ["Auto", "10x"],
-        "Precision Boost Overdrive Scalar": ["Auto"],
-    },
-
-    "Global C-State Control": {
+    "Disable C-States": {
        "Global C-state Control": ['Disable', 'Disabled'],
        "C6 Mode": ['Disable', 'Disabled'],
        "DF Cstates": ['Disable', 'Disabled'],
        "ACPI _CST C1 Declaration": ['Disable', 'Disabled'],
        "SB C1E Support": ['Disable', 'Disabled'],
+       "AMD Cool&Quiet function": ['Disable', 'Disabled'],
+       "PSS Support": ['Disable', 'Disabled'],
     },
 
-    "Memory PowerDown Modes": {
-        "Memory Power Down Enable": ["Disable", "Disabled"],
-        "Power Down Mode": ["Disable", "Disabled"],
-        "Bankgroup Swap": ["Disable", "Disabled"],
+    "Disable SMT": {
+    "SMT Control": ['Disable', 'Disabled'],
+    "SMT Mode": ['Disable', 'Disabled'],
+    "SMT": ['Disable', 'Disabled'],
     },
 
-    "SMU Debug & Telemetry": {
-        "SMU Debug Mode": ["Enable", "Enabled"],
-        "SMU Telemetry": ["Enable", "Enabled"],
-    },
-
-    "SMT Control": {
-        "SMT Control": ['Disable', 'Disabled'],
-        "SMT Mode": ['Disable', 'Disabled'],
-        "SMT": ['Disable', 'Disabled'],
-    },
-
-    "Clock Gating Control": {
+    "Disable Gating": {
         "Clock Power Management(CLKREQ#)": ['Disable', 'Disabled'],
         "Unused GPP Clocks Off": ['Disable', 'Disabled'],
         "AB Clock Gating": ['Disable', 'Disabled'],
@@ -951,7 +927,7 @@ AMD_PRESETS_ADV: Dict[str, Dict[str, Any]] = {
         "PCIB Clock Run": ['Disable', 'Disabled'],
     },
 
-    "Sleep & Standby States": {
+    "Disable Sleep/Standby states": {
        "ACPI Sleep State": ["Disabled", "Disable", "0"],
        "Aggresive SATA Device Sleep Port 0": ["Disabled", "Disable", "0"],
        "Aggresive SATA Device Sleep Port 1": ["Disabled", "Disable", "0"],
@@ -961,7 +937,8 @@ AMD_PRESETS_ADV: Dict[str, Dict[str, Any]] = {
        "Adaptive S4": ["Disabled", "Disable", "0"],
     },
 
-    "PCIe ASPM & ClkReq": {
+
+    "PCIe & Link Power Management": {
         "ASPM Support": ['Disable', 'Disabled'],
         "CPU PCIE ASPM Mode Control": ['Disable', 'Disabled'],
         "ASPM Control for CPU": ['Disable', 'Disabled'],
@@ -3589,7 +3566,7 @@ class CustomTitleBar(QtWidgets.QWidget):
 # Preset row widget
 # --------------------------------------------------------------------------------------
 class PresetRow(QtWidgets.QWidget):
-    """Clean preset toggle row with hairline divider"""
+    """Preset toggle row with hairline divider"""
     toggled = Signal(str, bool)  # preset_name, enabled
 
     def __init__(self, name: str, on: bool = False, parent: Optional[QtWidgets.QWidget] = None) -> None:
@@ -3597,7 +3574,7 @@ class PresetRow(QtWidgets.QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.name = name
         
-        # Main layout
+        # Main layout with divider
         main_lay = QtWidgets.QVBoxLayout(self)
         main_lay.setContentsMargins(0, 0, 0, 0)
         main_lay.setSpacing(0)
@@ -3610,7 +3587,7 @@ class PresetRow(QtWidgets.QWidget):
         lay.setSpacing(12)
 
         self.lbl = QtWidgets.QLabel(name)
-        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px; font-weight: 500;")
+        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px;")
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         self.sw = ToggleSwitch(self, width=48, height=26)
@@ -3625,7 +3602,7 @@ class PresetRow(QtWidgets.QWidget):
         # Hairline divider
         divider = QtWidgets.QFrame()
         divider.setFrameShape(QtWidgets.QFrame.HLine)
-        divider.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px; margin: 0;")
+        divider.setStyleSheet(f"background: {THEME['input_border']}; max-height: 1px;")
         main_lay.addWidget(divider)
 
 
@@ -3643,7 +3620,7 @@ class SegmentedControl(QtWidgets.QWidget):
             options = ["AMD", "Intel"]
         
         self._options = options
-        self._current = options[1] if "Intel" in options else options[0]  # Intel default
+        self._current = options[1] if "Intel" in options else options[0]
         
         self.setFocusPolicy(Qt.StrongFocus)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -3662,7 +3639,6 @@ class SegmentedControl(QtWidgets.QWidget):
             btn.setMinimumHeight(32)
             btn.clicked.connect(lambda checked, o=opt: self._on_click(o))
             
-            # Styling
             base_style = f"""
                 QPushButton {{
                     background: transparent;
@@ -3685,7 +3661,6 @@ class SegmentedControl(QtWidgets.QWidget):
                 }}
             """
             
-            # Border radius for edges
             if i == 0:
                 btn.setStyleSheet(base_style + "border-radius: 12px 0 0 12px;")
             elif i == len(self._options) - 1:
@@ -4060,17 +4035,16 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rw.setContentsMargins(14, 14, 14, 14)
         rw.setSpacing(12)
 
-        # Card header with title and segmented control
+        # Card header: title on left, segmented control on right
         header_row = QtWidgets.QHBoxLayout()
         header_row.setContentsMargins(0, 0, 0, 0)
         header_row.setSpacing(12)
         
-        # Title
         lbl = QtWidgets.QLabel("Preset Configuration")
         lbl.setStyleSheet(f"font-size: 16px; font-weight: 600; color: {THEME['text']};")
         header_row.addWidget(lbl, 1)
         
-        # Segmented control (AMD/Intel)
+        # Segmented control for CPU family
         self.cpuSegmented = SegmentedControl(["AMD", "Intel"])
         header_row.addWidget(self.cpuSegmented, 0, Qt.AlignRight)
         
@@ -4153,7 +4127,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.current_path: Optional[Path] = None
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
-        # Wire up segmented control
+        # Wire up
         self.cpuSegmented.currentChanged.connect(self._on_family_switch)        # Layout right panel with better structure
         rw.addWidget(lbl)
         
@@ -5100,10 +5074,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.preset_placeholder.setVisible(True)
         self.status("Preset list cleared.")
 
-    def _on_family_switch(self, cpu: str) -> None:
-        """Handle CPU family change from segmented control (AMD/Intel)"""
-        fam = cpu.lower()  # "AMD" or "Intel" → "amd" or "intel"
+    def _on_family_switch(self, on: bool) -> None:
+        fam = "amd" if on else "intel"
         self._preset_family = fam
+        self.familyLabel.setText("AMD" if on else "Intel")
         self._build_adv_page_for_family(fam)
         self._rebuild_preset_view_and_targets()
 
