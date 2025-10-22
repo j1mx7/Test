@@ -2812,7 +2812,7 @@ class ModernToast(QtWidgets.QFrame):
         
         self.setStyleSheet(f"""
             ModernToast {{
-                background: rgba(15, 20, 25, 0.95);
+                background-color: rgba(15, 20, 25, 242);
                 border: 1px solid {color};
                 border-radius: 12px;
             }}
@@ -2849,7 +2849,7 @@ class ModernToast(QtWidgets.QFrame):
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.hide_toast)
     
-    def show_toast(self, parent_widget):
+    def show_toast(self, parent_widget, duration_ms=3500):
         parent_rect = parent_widget.geometry()
         center_x = parent_rect.center().x() - self.width() // 2
         bottom_y = parent_rect.bottom() - 80
@@ -2898,17 +2898,17 @@ class ModernToastManager(QtCore.QObject):
         if toast in self.active_toasts:
             self.active_toasts.remove(toast)
     
-    def success(self, message: str):
-        self.show(message, "success", 3500)
+    def success(self, message: str, duration_ms: int = 3500):
+        self.show(message, "success", duration_ms)
     
-    def error(self, message: str):
-        self.show(message, "error", 4500)
+    def error(self, message: str, duration_ms: int = 4500):
+        self.show(message, "error", duration_ms)
     
-    def warning(self, message: str):
-        self.show(message, "warning", 4000)
+    def warning(self, message: str, duration_ms: int = 4000):
+        self.show(message, "warning", duration_ms)
     
-    def info(self, message: str):
-        self.show(message, "info", 3500)
+    def info(self, message: str, duration_ms: int = 3500):
+        self.show(message, "info", duration_ms)
 
 
 
@@ -2962,10 +2962,8 @@ class ProgressBar(QtWidgets.QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.value = 0
+        self._value = 0
         self.maximum = 100
-        self.animation = QtCore.QPropertyAnimation(self, b"value")
-        self.animation.setDuration(200)
         self.setFixedHeight(6)
         self.setStyleSheet(f"""
             QWidget {{
@@ -2975,7 +2973,7 @@ class ProgressBar(QtWidgets.QWidget):
         """)
     
     def setValue(self, value):
-        self.value = min(value, self.maximum)
+        self._value = min(value, self.maximum)
         self.update()
     
     def setMaximum(self, maximum):
@@ -2985,8 +2983,8 @@ class ProgressBar(QtWidgets.QWidget):
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         
-        if self.maximum > 0 and self.value > 0:
-            width = int((self.value / self.maximum) * self.width())
+        if self.maximum > 0 and self._value > 0:
+            width = int((self._value / self.maximum) * self.width())
             painter.fillRect(0, 0, width, self.height(), QtGui.QColor(THEME['accent']))
 
 
@@ -5560,6 +5558,15 @@ def main() -> None:
 
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName(APP_TITLE)
+
+    win = AutoBiosWindow()
+    win.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
+
 
     win = AutoBiosWindow()
     win.show()
