@@ -2798,367 +2798,117 @@ class ToastNotification(QtWidgets.QFrame):
 # PROFESSIONAL TOAST NOTIFICATION SYSTEM
 # ============================================================================
 
-class ProToastWidget(QtWidgets.QFrame):
-    """
-    Professional toast notification with modern design.
-    Features: icons, title, body, action button, close button, smooth animations.
-    """
+class ModernToast(QtWidgets.QFrame):
+    """Clean, professional toast - bottom-center"""
     
-    closed = Signal()
-    
-    def __init__(self, toast_type: str, title: str, body: str = "", action_text: str = "", parent=None):
+    def __init__(self, message: str, toast_type: str = "info", parent=None):
         super().__init__(parent)
-        self.toast_type = toast_type
-        self.title_text = title
-        self.body_text = body
-        self._timer_paused = False
-        self._dismiss_timer = None
-        self._duplicate_count = 1
-        
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
-        self.setFixedWidth(380)
-        self.setMaximumHeight(150)
         
-        # Opacity effect for animations
-        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self._opacity_effect)
-        self._opacity_effect.setOpacity(0.0)
+        colors = {"success": "#10b981", "error": "#ef4444", "warning": "#f59e0b", "info": "#4a90e2"}
+        color = colors.get(toast_type, colors["info"])
         
-        # Style
         self.setStyleSheet(f"""
-            ProToastWidget {{
-                background: {THEME['card']};
-                border: 1px solid {THEME['border']};
+            ModernToast {{
+                background: rgba(15, 20, 25, 0.95);
+                border: 1px solid {color};
                 border-radius: 12px;
             }}
         """)
         
-        # Layout
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(12)
         
-        # Icon and color
-        icon_map = {"info": "ℹ", "success": "✓", "warning": "⚠", "error": "✕"}
-        color_map = {
-            "info": THEME['accent'],
-            "success": THEME['success'],
-            "warning": THEME['warn'],
-            "error": THEME['error']
-        }
-        
+        icon_map = {"success": "✓", "error": "✕", "warning": "⚠", "info": "ℹ"}
         icon_label = QtWidgets.QLabel(icon_map.get(toast_type, "ℹ"))
-        icon_label.setStyleSheet(f"""
-            QLabel {{
-                color: {color_map.get(toast_type, THEME['accent'])};
-                font-size: 20px;
-                font-weight: 600;
-                background: transparent;
-                min-width: 24px;
-            }}
-        """)
+        icon_label.setStyleSheet(f"color: {color}; font-size: 18px; font-weight: bold;")
         layout.addWidget(icon_label)
         
-        # Content
-        content_layout = QtWidgets.QVBoxLayout()
-        content_layout.setSpacing(4)
+        msg_label = QtWidgets.QLabel(message)
+        msg_label.setStyleSheet(f"color: {THEME['text']}; font-size: 13px; background: transparent;")
+        layout.addWidget(msg_label, 1)
         
-        # Title with counter
-        title_layout = QtWidgets.QHBoxLayout()
-        self.title_label = QtWidgets.QLabel(title)
-        self.title_label.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600; background: transparent;")
-        title_layout.addWidget(self.title_label, 1)
+        self.adjustSize()
+        self.setFixedHeight(48)
         
-        self.count_label = QtWidgets.QLabel()
-        self.count_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 12px; background: transparent;")
-        self.count_label.hide()
-        title_layout.addWidget(self.count_label)
-        content_layout.addLayout(title_layout)
+        self.opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self.opacity_effect)
         
-        # Body
-        if body:
-            body_label = QtWidgets.QLabel(body)
-            body_label.setWordWrap(True)
-            body_label.setStyleSheet(f"color: {THEME['muted']}; font-size: 12px; background: transparent;")
-            content_layout.addWidget(body_label)
-        
-        layout.addLayout(content_layout, 1)
-        
-        # Close button
-        close_btn = QtWidgets.QPushButton("×")
-        close_btn.setFixedSize(24, 24)
-        close_btn.setCursor(Qt.PointingHandCursor)
-        close_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent;
-                border: none;
-                color: {THEME['muted']};
-                font-size: 20px;
-            }}
-            QPushButton:hover {{ color: {THEME['text']}; }}
-        """)
-        close_btn.clicked.connect(self.close_toast)
-        layout.addWidget(close_btn)
-        
-        # Animations
-        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
-        self.fade_anim.setDuration(200)
+        self.fade_anim = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_anim.setDuration(250)
+        self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
         
         self.slide_anim = QtCore.QPropertyAnimation(self, b"pos")
-        self.slide_anim.setDuration(250)
+        self.slide_anim.setDuration(300)
         self.slide_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
         
-        # Auto-dismiss (except errors)
-        if toast_type != "error":
-            self._dismiss_timer = QtCore.QTimer(self)
-            self._dismiss_timer.setSingleShot(True)
-            self._dismiss_timer.timeout.connect(self.close_toast)
-            self._dismiss_timer.start(4000)
+        self.timer = QtCore.QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.hide_toast)
     
-    def increment_count(self):
-        """Increment duplicate counter"""
-        self._duplicate_count += 1
-        self.count_label.setText(f"×{self._duplicate_count}")
-        self.count_label.show()
-        if self._dismiss_timer:
-            self._dismiss_timer.start(4000)
-    
-    def enterEvent(self, event):
-        """Pause timer on hover"""
-        if self._dismiss_timer and self._dismiss_timer.isActive():
-            self._dismiss_timer.stop()
-            self._timer_paused = True
-        super().enterEvent(event)
-    
-    def leaveEvent(self, event):
-        """Resume timer"""
-        if self._timer_paused and self._dismiss_timer:
-            self._dismiss_timer.start(2000)
-            self._timer_paused = False
-        super().leaveEvent(event)
-    
-    def keyPressEvent(self, event):
-        """ESC closes"""
-        if event.key() == Qt.Key_Escape:
-            self.close_toast()
-        super().keyPressEvent(event)
-    
-    def show_toast(self, parent_widget, position: int):
-        """Show with animation"""
-        parent_rect = parent_widget.rect()
-        parent_pos = parent_widget.mapToGlobal(QtCore.QPoint(0, 0))
+    def show_toast(self, parent_widget, duration_ms=3500):
+        parent_rect = parent_widget.geometry()
+        center_x = parent_rect.center().x() - self.width() // 2
+        bottom_y = parent_rect.bottom() - 80
+        start_y = parent_rect.bottom() + 20
         
-        margin = 16
-        title_bar_height = 60
-        spacing = 12
-        
-        final_x = parent_pos.x() + parent_rect.width() - self.width() - margin
-        final_y = parent_pos.y() + title_bar_height + margin + (position * (self.height() + spacing))
-        start_y = final_y - 30
-        
-        self.move(final_x, start_y)
+        self.move(center_x, start_y)
         self.show()
         
+        self.opacity_effect.setOpacity(0.0)
         self.fade_anim.setStartValue(0.0)
         self.fade_anim.setEndValue(1.0)
         self.fade_anim.start()
         
-        self.slide_anim.setStartValue(QtCore.QPoint(final_x, start_y))
-        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
-        self.slide_anim.start()
-    
-    def close_toast(self):
-        """Close with animation"""
-        current_pos = self.pos()
-        self.slide_anim.setStartValue(current_pos)
-        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 20))
+        self.slide_anim.setStartValue(QtCore.QPoint(center_x, start_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(center_x, bottom_y))
         self.slide_anim.start()
         
-        self.fade_anim.setStartValue(self._opacity_effect.opacity())
+        self.timer.start(duration_ms)
+    
+    def hide_toast(self):
+        self.fade_anim.setStartValue(self.opacity_effect.opacity())
         self.fade_anim.setEndValue(0.0)
-        self.fade_anim.finished.connect(lambda: (self.closed.emit(), self.deleteLater()))
+        self.fade_anim.finished.connect(self.deleteLater)
         self.fade_anim.start()
 
 
-class ProToastManager(QtCore.QObject):
-    """
-    Professional toast manager with queue, deduplication, and positioning.
-    Max 4 toasts visible.
-    """
+class ModernToastManager(QtCore.QObject):
+    """Manages modern toasts"""
     
-    def __init__(self, parent_widget):
-        super().__init__()
-        self.parent_widget = parent_widget
-        self.toasts: list = []
-        self._last_messages: dict = {}
-        self.max_toasts = 4
-    
-    def _get_key(self, toast_type: str, title: str, body: str) -> str:
-        return f"{toast_type}:{title}:{body}"
-    
-    def _should_dedupe(self, key: str):
-        """Check for duplicate within 2s"""
-        import time
-        now = time.time()
-        
-        if key in self._last_messages and now - self._last_messages[key] < 2.0:
-            for toast in self.toasts:
-                if self._get_key(toast.toast_type, toast.title_text, toast.body_text) == key:
-                    return toast
-        
-        self._last_messages[key] = now
-        return None
-    
-    def _reposition(self):
-        """Reposition all toasts"""
-        for i, toast in enumerate(self.toasts):
-            parent_rect = self.parent_widget.rect()
-            parent_pos = self.parent_widget.mapToGlobal(QtCore.QPoint(0, 0))
-            
-            final_x = parent_pos.x() + parent_rect.width() - toast.width() - 16
-            final_y = parent_pos.y() + 60 + 16 + (i * (toast.height() + 12))
-            
-            toast.slide_anim.setStartValue(toast.pos())
-            toast.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
-            toast.slide_anim.start()
-    
-    def _show(self, toast_type: str, title: str, body: str = ""):
-        """Show toast"""
-        key = self._get_key(toast_type, title, body)
-        
-        existing = self._should_dedupe(key)
-        if existing:
-            existing.increment_count()
-            return
-        
-        if len(self.toasts) >= self.max_toasts:
-            self.toasts[0].close_toast()
-        
-        toast = ProToastWidget(toast_type, title, body, "", self.parent_widget)
-        toast.closed.connect(lambda: self._on_closed(toast))
-        
-        self.toasts.append(toast)
-        toast.show_toast(self.parent_widget, len(self.toasts) - 1)
-    
-    def _on_closed(self, toast):
-        """Handle close"""
-        if toast in self.toasts:
-            self.toasts.remove(toast)
-            self._reposition()
-    
-    def info(self, title: str, body: str = ""):
-        self._show("info", title, body)
-    
-    def success(self, title: str, body: str = ""):
-        self._show("success", title, body)
-    
-    def warning(self, title: str, body: str = ""):
-        self._show("warning", title, body)
-    
-    def error(self, title: str, body: str = ""):
-        self._show("error", title, body)
-
-
-
-class LoadingSpinner(QtWidgets.QWidget):
-    """Modern loading spinner with smooth animation"""
-    
-    def __init__(self, parent=None, size=24, color=None):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.size = size
-        self.color = color or THEME['accent']
-        self.angle = 0
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_animation)
-        self.setFixedSize(size, size)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        
-    def start(self):
-        """Start the spinning animation"""
-        self.timer.start(16)  # ~60 FPS
-        self.show()
-        
-    def stop(self):
-        """Stop the spinning animation"""
-        self.timer.stop()
-        self.hide()
-        
-    def update_animation(self):
-        """Update the rotation angle"""
-        self.angle = (self.angle + 8) % 360
-        self.update()
-        
-    def paintEvent(self, event):
-        """Paint the spinning circle"""
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        
-        # Create a circular gradient
-        gradient = QtGui.QConicalGradient(self.size // 2, self.size // 2, self.angle)
-        gradient.setColorAt(0, QtGui.QColor(self.color))
-        gradient.setColorAt(0.7, QtGui.QColor(self.color))
-        gradient.setColorAt(0.8, QtGui.QColor(self.color).lighter(150))
-        gradient.setColorAt(1, Qt.transparent)
-        
-        # Draw the spinner
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QtGui.QBrush(gradient))
-        painter.drawEllipse(2, 2, self.size - 4, self.size - 4)
-
-
-class ProgressBar(QtWidgets.QWidget):
-    """Modern progress bar with smooth animation"""
+        self.parent_widget = parent
+        self.active_toasts = []
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.value = 0
-        self.maximum = 100
-        self.animation = QtCore.QPropertyAnimation(self, b"value")
-        self.animation.setDuration(200)
-        self.setFixedHeight(6)
-        self.setStyleSheet(f"""
-            QWidget {{
-                background: {THEME['input_border']};
-                border-radius: 3px;
-            }}
-        """)
+    def show(self, message: str, toast_type: str = "info", duration_ms: int = 3500):
+        while len(self.active_toasts) >= 3:
+            old = self.active_toasts.pop(0)
+            old.hide_toast()
         
-    def setValue(self, value):
-        """Set progress value with animation"""
-        self.value = max(0, min(value, self.maximum))
-        self.animation.stop()
-        self.animation.setStartValue(self.value)
-        self.animation.setEndValue(self.value)
-        self.animation.start()
-        self.update()
-        
-    def setMaximum(self, maximum):
-        """Set maximum value"""
-        self.maximum = maximum
-        
-    def paintEvent(self, event):
-        """Paint the progress bar"""
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        
-        # Background
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QtGui.QBrush(QtGui.QColor(THEME['input_border'])))
-        painter.drawRoundedRect(self.rect(), 3, 3)
-        
-        # Progress
-        if self.value > 0:
-            progress_width = int((self.value / self.maximum) * self.width())
-            progress_rect = QtCore.QRect(0, 0, progress_width, self.height())
-            
-            gradient = QtGui.QLinearGradient(0, 0, progress_width, 0)
-            gradient.setColorAt(0, QtGui.QColor(THEME['accent']))
-            gradient.setColorAt(1, QtGui.QColor(THEME['accent_hover']))
-            
-            painter.setBrush(QtGui.QBrush(gradient))
-            painter.drawRoundedRect(progress_rect, 3, 3)
+        toast = ModernToast(message, toast_type, self.parent_widget)
+        toast.show_toast(self.parent_widget, duration_ms)
+        self.active_toasts.append(toast)
+        toast.destroyed.connect(lambda: self._remove_toast(toast))
+    
+    def _remove_toast(self, toast):
+        if toast in self.active_toasts:
+            self.active_toasts.remove(toast)
+    
+    def success(self, message: str):
+        self.show(message, "success", 3500)
+    
+    def error(self, message: str):
+        self.show(message, "error", 4500)
+    
+    def warning(self, message: str):
+        self.show(message, "warning", 4000)
+    
+    def info(self, message: str):
+        self.show(message, "info", 3500)
 
 
 class NotificationManager(QtCore.QObject):
@@ -4386,7 +4136,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self._init_loading_components()
         
         # Professional toast system
-        self.toast = ProToastManager(self)
+        self.toast = ModernToastManager(self)
         
         # Premium fade-in animation
         self._init_fade_in_animation()
@@ -5227,6 +4977,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
     def _on_family_switch(self, on: bool) -> None:
         fam = "amd" if on else "intel"
         self._preset_family = fam
+        self.status(f"Switched to {fam.upper()} presets")
         self.familyLabel.setText("AMD" if on else "Intel")
         self._build_adv_page_for_family(fam)
         self._rebuild_preset_view_and_targets()

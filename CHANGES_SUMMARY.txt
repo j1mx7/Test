@@ -1,0 +1,109 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║         ✅ AMD ROUTING FIX + BRAND NEW TOAST SYSTEM ✅                   ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+WHAT WAS FIXED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. AMD ADVANCED ROUTING ✅
+   
+   Problem: AMD Advanced tab might load Intel data
+   Fix: 
+   • Verified assertion guards are in place
+   • AMD Advanced → Always loads AMD_PRESETS_ADV
+   • Intel Advanced → Always loads INTEL_PRESETS_ADV
+   • Added status message: "Switched to AMD/INTEL presets"
+   
+   How it works:
+   • Toggle switch changes _preset_family to "amd" or "intel"
+   • _current_adv_map() returns correct preset data
+   • Assertion at line 5175-5178 prevents mixing
+   • If AMD family, asserts adv_map is AMD_PRESETS_ADV
+   • If Intel family, asserts adv_map is INTEL_PRESETS_ADV
+
+2. BRAND NEW TOAST SYSTEM ✅
+   
+   Old system: ProToastWidget + ProToastManager (363 lines)
+   New system: ModernToast + ModernToastManager (clean & simple)
+   
+   NEW DESIGN:
+   • Position: Bottom-center (80px from bottom)
+   • Style: Outline border (1px), semi-transparent background
+   • Icons: ✓ ✕ ⚠ ℹ (color-coded)
+   • Animations: Smooth slide-up + fade (300ms)
+   • Height: Fixed 48px (clean and consistent)
+   • Max toasts: 3 visible at once
+   
+   TIMING:
+   • Success: 3.5s auto-dismiss
+   • Info: 3.5s auto-dismiss
+   • Warning: 4.0s auto-dismiss
+   • Error: 4.5s auto-dismiss
+   
+   API (same as before):
+   • self.toast.success("Message")
+   • self.toast.error("Message")
+   • self.toast.warning("Message")
+   • self.toast.info("Message")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TECHNICAL DETAILS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Code Changes:
+• Removed: ProToastWidget, ProToastManager (lines 2801-3163)
+• Added: ModernToast, ModernToastManager (new clean implementation)
+• Updated: Toast initialization to ModernToastManager
+• Added: Family switch status message
+
+File Size:
+• Before: 5,702 lines
+• After: 5,453 lines (249 lines removed!)
+• Cleaner, simpler code
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOW TO TEST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    python AutoBios.py
+
+1. Load nvram.txt file
+2. Go to Presets tab
+3. Toggle CPU family switch:
+   → Status bar shows "Switched to AMD presets" or "Switched to INTEL presets"
+4. Navigate to Advanced page
+5. Enable some AMD presets when in AMD mode
+6. Enable some Intel presets when in Intel mode
+7. Click "Apply Config"
+   → New toast slides up from bottom-center
+   → Clean outline style, smooth animation
+   → Auto-dismisses after 3.5 seconds
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VISUAL COMPARISON:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Old Toast (top-right):
+  ┌──────────────────────────┐
+  │ 🎯 Title                 │
+  │ Body text here...        │
+  │                    [×]   │
+  └──────────────────────────┘
+
+New Toast (bottom-center):
+  ┌─────────────────┐
+  │ ✓  Success msg  │  ← Clean, minimal, smooth
+  └─────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Branch: clean-state
+File: AutoBios.py (5,453 lines, 241 KB)
+Status: ✅ Ready to use!
+
+══════════════════════════════════════════════════════════════════════════
