@@ -60,46 +60,62 @@ DEFAULT_NVRAM_PATH = BASE_DIR / DEFAULT_NVRAM_NAME
 
 # --------------------------------------------------------------------------------------
 # Theme
-# --------------------------------------------------------------------------------------
-THEME = {
-    # Core Background - Deep professional midnight
-    "bg":            "#0a0a12",      # Main background
-    "card":          "#12121c",      # Card surfaces
-    "card_hover":    "#18182a",      # Hover state
+# -------------------------THEME = {
+    # Core Background - Luxury off-white and champagne
+    "bg":            "#fafafa",      # Main background - pristine off-white
+    "card":          "#ffffff",      # Card surfaces - pure white
+    "card_hover":    "#f8f8f8",      # Hover state - subtle warmth
+    "card_shadow":   "rgba(0, 0, 0, 0.08)",  # Subtle shadow
     
-    # Surfaces - Consistent layers
-    "surface":       "#0e0e18",      # Secondary surface
-    "elevated":      "#161622",      # Elevated elements
+    # Surfaces - Sophisticated layers
+    "surface":       "#f5f5f5",      # Secondary surface - graphite gray
+    "elevated":      "#ffffff",      # Elevated elements - pure white
+    "overlay":       "rgba(0, 0, 0, 0.02)",  # Subtle overlay
     
-    # Text - Perfect contrast
-    "text":          "#e8e8f0",      # Primary text
-    "text_secondary":"#9898b0",      # Secondary text
-    "text_muted":    "#686888",      # Muted text
-    "muted":         "#686888",      # Muted (legacy)
+    # Text - Perfect contrast with luxury feel
+    "text":          "#1a1a1a",      # Primary text - deep charcoal
+    "text_secondary":"#666666",      # Secondary text - graphite gray
+    "text_muted":    "#999999",      # Muted text - champagne beige
+    "muted":         "#999999",      # Muted (legacy)
     
-    # Borders - Unified system
-    "border":        "#1e1e2c",      # Primary border
-    "border_subtle": "#28283c",      # Subtle divider
-    "grid":          "#1a1a28",      # Grid lines
+    # Borders - Elegant thin outlines
+    "border":        "#e0e0e0",      # Primary border - subtle graphite
+    "border_subtle": "#f0f0f0",      # Subtle divider - champagne beige
+    "grid":          "#f5f5f5",      # Grid lines - very subtle
+    "outline":       "#d0d0d0",      # Focus outline - refined gray
     
-    # Interactive - Consistent purple system
-    "accent":        "#5858ee",      # Main accent
-    "accent_hover":  "#6868ff",      # Hover state
-    "accent_dim":    "#4848cc",      # Pressed state
-    "accent_glow":   "rgba(88, 88, 238, 0.15)",  # Glow effect
+    # Interactive - Sophisticated gold accent system
+    "accent":        "#d4af37",      # Main accent - luxury gold
+    "accent_hover":  "#e6c547",      # Hover state - brighter gold
+    "accent_dim":    "#b8941f",      # Pressed state - deeper gold
+    "accent_glow":   "rgba(212, 175, 55, 0.12)",  # Subtle gold glow
+    "accent_light":  "#f7f3e9",      # Light gold background
     
-    # Input states
-    "input_bg":      "#0e0e18",      # Input background (for combo boxes)
-    "input_border":  "#2a2a3c",      # Input border
-    "input_focus":   "#5858ee",      # Focus state
-    "selection":     "#24243a",      # Selection bg
+    # Input states - Refined and clean
+    "input_bg":      "#ffffff",      # Input background - pure white
+    "input_border":  "#e0e0e0",      # Input border - subtle graphite
+    "input_focus":   "#d4af37",      # Focus state - luxury gold
+    "input_hover":   "#f8f8f8",      # Input hover - warm white
+    "selection":     "rgba(212, 175, 55, 0.15)",  # Gold selection
     
-    # Status - Vibrant & clear
-    "success":       "#00dd88",      # Success green
-    "warn":          "#ffaa44",      # Warning gold (legacy)
-    "error":         "#ff4477",      # Error red
+    # Status - Refined and professional
+    "success":       "#2d5a27",      # Success - deep forest green
+    "success_light": "#e8f5e8",      # Success background
+    "warn":          "#b8860b",      # Warning - sophisticated gold
+    "warn_light":    "#fef9e7",      # Warning background
+    "error":         "#8b0000",      # Error - deep burgundy
+    "error_light":   "#ffeaea",      # Error background
     
-    # Switch
+    # Switch - Elegant toggle design
+    "switch_off":    "#e0e0e0",      # Off state - subtle gray
+    "switch_on":     "#d4af37",      # On state - luxury gold
+    "switch_track":  "#f0f0f0",      # Switch track - champagne beige
+    
+    # Luxury gradients and effects
+    "gradient_start": "#ffffff",     # Gradient start - pure white
+    "gradient_end":   "#f8f8f8",     # Gradient end - warm white
+    "glass_effect":   "rgba(255, 255, 255, 0.85)",  # Glass morphism
+}ch
     "switch_off":    "#1e1e2c",      # Off state
     "switch_on":     "#5858ee",      # On state
 }
@@ -3376,7 +3392,7 @@ class NoFileLoadedDialog(QtWidgets.QDialog):
             QPushButton {{
                 background: transparent;
                 border: 1px solid {THEME['input_border']};
-                border-radius: 10px;
+                border-radius: 8px;
                 padding: 10px 20px;
                 color: {THEME['text']};
                 font-size: 14px;
@@ -3402,7 +3418,7 @@ class NoFileLoadedDialog(QtWidgets.QDialog):
             QPushButton {{
                 background: transparent;
                 border: 1px solid {THEME['input_border']};
-                border-radius: 10px;
+                border-radius: 8px;
                 padding: 10px 20px;
                 color: {THEME['text']};
                 font-size: 14px;
@@ -3655,7 +3671,7 @@ class OutlineConfirmDialog(QtWidgets.QDialog):
         self.cancel_btn.setStyleSheet(f"""
             QPushButton {{
                 background: transparent; border: 1px solid {THEME['input_border']};
-                border-radius: 10px; padding: 8px 20px; color: {THEME['text']}; font-size: 14px;
+                border-radius: 8px; padding: 8px 20px; color: {THEME['text']}; font-size: 14px;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
             QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
@@ -3670,7 +3686,7 @@ class OutlineConfirmDialog(QtWidgets.QDialog):
         self.confirm_btn.setStyleSheet(f"""
             QPushButton {{
                 background: transparent; border: 1.5px solid {THEME['accent']};
-                border-radius: 10px; padding: 8px 20px; color: {THEME['text']}; 
+                border-radius: 8px; padding: 8px 20px; color: {THEME['text']}; 
                 font-size: 14px; font-weight: 500;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['accent_hover']}; }}
@@ -3787,12 +3803,11 @@ class NoFileLoadedPresetDialog(QtWidgets.QDialog):
         self.cancel_btn.setStyleSheet(f"""
             QPushButton {{
                 background: transparent; border: 1px solid {THEME['input_border']};
-                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
+                border-radius: 8px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
-            QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
-        """)
-        self.cancel_btn.clicked.connect(self.reject)
+        self.setFixedHeight(48)
+        self.setStyleSheet(f"background: {THEME['card']}; border-bottom: 1px solid {THEME['border']}; border-top-left-radius: 12px; border-top-right-radius: 12px;").cancel_btn.clicked.connect(self.reject)
         self.cancel_btn.setCursor(Qt.PointingHandCursor)
         button_row.addWidget(self.cancel_btn)
         
@@ -3802,7 +3817,7 @@ class NoFileLoadedPresetDialog(QtWidgets.QDialog):
         self.export_btn.setStyleSheet(f"""
             QPushButton {{
                 background: transparent; border: 1px solid {THEME['input_border']};
-                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
+                border-radius: 8px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
             QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
@@ -3817,7 +3832,7 @@ class NoFileLoadedPresetDialog(QtWidgets.QDialog):
         self.load_btn.setStyleSheet(f"""
             QPushButton {{
                 background: transparent; border: 1.5px solid {THEME['accent']};
-                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; 
+                border-radius: 8px; padding: 8px 16px; color: {THEME['text']}; 
                 font-size: 14px; font-weight: 500;
             }}
             QPushButton:hover {{ background: transparent; border-color: {THEME['accent_hover']}; }}
@@ -3892,7 +3907,7 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.drag_position = None
 
         layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(12, 0, 0, 0)
+        layout.setContentsMargins(20, 0, 8, 0)
         layout.setSpacing(0)
 
         layout.addStretch()
@@ -4111,10 +4126,9 @@ class PresetRow(QtWidgets.QWidget):
         self.sw = ToggleSwitch(self)
         self.sw.setChecked(on)
         self.sw.setFocusPolicy(Qt.NoFocus)
-        # precise binding
-        self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
-
-        lay.addWidget(self.lbl, 1)
+                border-radius: 12px;
+                border: 1px solid {THEME['border']};
+                box-shadow: 0 4px 24px {THEME['card_shadow']};
         lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
         
         # Add subtle separator line with gradient effect (very subtle)
@@ -4137,10 +4151,8 @@ class PresetRow(QtWidgets.QWidget):
 # Page Dots
 # --------------------------------------------------------------------------------------
 class PageDots(QtWidgets.QWidget):
-    pageChanged = Signal(int)  # 0 or 1
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
+        root.setContentsMargins(40, 32, 40, 32)  # Luxury generous spacing
+        root.setSpacing(32)  # Elegant breathing room
         self._index = -1
         self.setFixedHeight(32)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
@@ -4156,9 +4168,8 @@ class PageDots(QtWidgets.QWidget):
         for i, b in enumerate((self.btn0, self.btn1)):
             b.setFixedSize(14, 14)
             b.setCheckable(True)
-            b.setCursor(Qt.PointingHandCursor)
-            b.setStyleSheet(self._dot_styles(False))
-            b.clicked.connect(partial(self.setIndex, i))
+            b.setCursor(Qt.PointingHan        hv.setContentsMargins(32, 24, 32, 24)  # Luxury header spacing
+        hv.setSpacing(20)  # Elegant spacingi))
             h.addWidget(b)
 
         h.addStretch(1)
@@ -4197,7 +4208,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         # Frameless window with custom title bar and rounded corners
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)  # For rounded corners
-        self.resize(1280, 760)
+        self.resize(1400, 900)
 
         # Enable drag & drop for nvram.txt files
         self.setAcceptDrops(True)
@@ -4705,7 +4716,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.loading_overlay.setStyleSheet(f"""
             QWidget {{
                 background: rgba(10, 14, 19, 200);
-                border-radius: 10px;
+                border-radius: 8px;
             }}
         """)
         self.loading_overlay.hide()
@@ -4719,9 +4730,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.loading_text.setStyleSheet(f"""
             QLabel {{
                 color: {THEME['text']};
-                font-size: 16px;
-                font-weight: 600;
-                background: transparent;
+                  min-height: 30px;
+            border-radius: 3px;
+            margin: 1px;und: transparent;
             }}
         """)
         self.loading_text.setAlignment(Qt.AlignCenter)
@@ -4738,8 +4749,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         
     def resizeEvent(self, event):
         """Handle window resize to update loading overlay position"""
-        super().resizeEvent(event)
-        if hasattr(self, 'loading_overlay') and self.loading_overlay.isVisible():
+        super().resizeEvent(event            min-width: 30px;
+            border-radius: 3px;
+            margin: 1px;
             self.loading_overlay.setGeometry(24, 20, self.width() - 48, self.height() - 40)
 
     def _init_fade_in_animation(self) -> None:
@@ -4751,14 +4763,19 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self._startup_fade.setDuration(280)  # Ultra-responsive
         self._startup_fade.setStartValue(0.0)
         self._startup_fade.setEndValue(1.0)
-        self._startup_fade.setEasingCurve(QtCore.QEasingCurve.OutExpo)  # Exponential for buttery smoothness
+        self._startup_                font-family:                font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+                line-height: 1.4;ambda: self.setGraphicsEffect(None))
         
-        # Cleanup effect after animation for optimal performance
-        self._startup_fade.finished.connect(lambda: self.setGraphicsEffect(None))
-        
-        QtCore.QTimer.singleShot(5, self._startup_fade.start)
+            }
+            
+            /* Smooth transitions for luxury feel */
+            QPushButton, QLineEdit, QTabBar::tab, QTableView::item {
+                transition: all 0.2s ease;
+            }
 
-    def show_loading(self, text: str = "Processing...", show_progress: bool = False) -> None:
+            /* Global rounded corners - Precise and balanced */   def show_loading(self, text: str = "Processing...", show_progress: bool = False) -> None:
         """Show loading overlay with optional progress bar"""
         self.loading_text.setText(text)
         self.loading_overlay.show()
@@ -4782,29 +4799,28 @@ class AutoBiosWindow(QtWidgets.QWidget):
     def update_progress(self, value: int, maximum: int = 100) -> None:
         """Update progress bar value"""
         self.progress_bar.setMaximum(maximum)
-        self.progress_bar.setValue(value)
-
-    def _navigate_presets(self, delta: int) -> None:
-            """Navigate between preset pages using a delta (-1 for left, +1 for right)."""
+        self.progress_bar.set                font-size:24px;
+                font-weight:300;
+                color:{t['text']};
+                letter-spacing:-0.02em;eft, +1 for right)."""
             current_index = self.pages.currentIndex()
             new_index = current_index + delta
             # Clamp index between 0 and the number of pages - 1
-            new_index = max(0, min(self.pages.count() - 1, new_index))
-            
-            if new_index != current_index:
-                self.pages.setCurrentIndex(new_index)
+            new_index = max(0, min(self.pages.count() - 1, new_inde                font-size:12px; 
+                font-weight:400;
+                letter-spacing:0.05em;ex(new_index)
                 # Reset scroll position to top when switching pages
                 self.scroll.verticalScrollBar().setValue(0)
                 QtCore.QTimer.singleShot(0, self.scrollContent.updateGeometry)
                 self._update_preset_nav_ui()
 
-    def _update_preset_nav_ui(self) -> None:
-            """Update the arrow buttons and title based on the current page."""
-            index = self.pages.currentIndex()
-            
-            # Update title and button enabled states
-            if index == 0:
-                self.lbl_page_title.setText("Basic Tuning")
+    def _u                padding: 12px 24px; 
+                margin: 0 2px;
+                border: 1px solid {t['border']}; 
+                border-radius: 6px; 
+                font-weight: 400; 
+                font-size: 14px; 
+                letter-spacing: 0.01em;             self.lbl_page_title.setText("Basic Tuning")
                 self.btn_page_left.setEnabled(False)
                 self.btn_page_right.setEnabled(True)
             else:  # index == 1
@@ -4812,17 +4828,14 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 family_name = "Intel" if self._preset_family == "intel" else "AMD"
                 self.lbl_page_title.setText(f"{family_name} Advanced")
                 self.btn_page_left.setEnabled(True)
-                self.btn_page_right.setEnabled(False)
-
-    # ---------- Style ----------
-    def _stylesheet(self) -> str:
-        t = THEME
-        # SCROLLBAR - ABSOLUTE FINAL ATTEMPT WITH MAXIMUM ROUNDING
-        scrollbars = f"""
-        QScrollBar:vertical {{
-            background: transparent;
-            width: 8px;
-            margin: 0px;
+                sel                background: {t['input_bg']};
+                border: 1px solid {t['input_border']};
+                border-radius: 6px;
+                padding: 12px 16px;
+                color: {t['text']};
+                font-size: 14px;
+                font-weight: 400;
+                letter-spacing: 0.01em;          margin: 0px;
         }}
         QScrollBar::handle:vertical {{
             background: {THEME['border_subtle']};
@@ -4847,7 +4860,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         QScrollBar:horizontal {{
             background: transparent;
-            height: 8px;
+            height: 6px;
             margin: 0px;
         }}
         QScrollBar::handle:horizontal {{
@@ -4874,7 +4887,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         return (
             f"""
-            /* Global styles - Unified system */
+            /* Luxury Design System - Apple meets Rolls-Royce */
             * {{
                 font-size: 13px;
                 font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
@@ -4882,20 +4895,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 letter-spacing: 0.2px;
             }}
 
-            /* Core widgets with global radius - Apple-style */
+            /* Global rounded corners - Precise and balanced */
             QWidget, QFrame, QGroupBox, QTabWidget::pane, QTabBar::tab,
             QPushButton, QLineEdit, QComboBox, QListView, QTreeView, QTableView,
             QScrollArea, QToolButton, QMenu, QDialog, QStatusBar {{
-                border-radius: 10px;
+                border-radius: 8px;
             }}
             
-            /* Subtle shadows - Clean minimal */
+            /* Elegant shadows - Subtle and refined */
             QPushButton, QLineEdit, QFrame#sideOuter {{
-                box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.6);
+                box-shadow: 0 1px 3px {t['card_shadow']};
             }}
             
             QPushButton:hover, QLineEdit:focus {{
-                box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.7);
+                box-shadow: 0 2px 8px {t['card_shadow']};
             }}
 
             QWidget {{ background-color: {t['bg']}; color: {t['text']}; }}
@@ -4921,7 +4934,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 letter-spacing:0.3px;
             }}
 
-            /* Top tabs - Clear with thin borders */
+            /* Tab navigation - Thin elegant outlines */
             QTabBar#topTabs {{ qproperty-drawBase:0; background:transparent; }}
             QTabBar#topTabs::tab {{ 
                 background: transparent; 
@@ -4931,21 +4944,19 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 border: 1px solid {t['border']}; 
                 border-radius: 12px; 
                 font-weight: 500; 
-                font-size: 13px; 
-                letter-spacing: 0.2px;
-            }}
-            QTabBar#topTabs::tab:hover {{ 
-                border-color: {t['accent']}; 
-                color: {t['text']};
-            }}
-            QTabBar#topTabs::tab:selected {{ 
+                font-                border-radius: 6px;
+                padding: 12px 24px; 
+                color: {t['text']}; 
+                font-weight: 400;
+                font-size: 14px;
+                letter-spacing: 0.01em;          QTabBar#topTabs::tab:selected {{ 
                 background: transparent; 
                 color: {t['accent']}; 
                 border: 1px solid {t['accent']};
                 font-weight: 600;
             }}
 
-            /* Search input - Rounded, line only */
+            /* Input fields - Refined and clean */
             QLineEdit, QLineEdit#searchInput {{
                 background: transparent;
                 border: 1px solid {t['border']};
@@ -4967,21 +4978,22 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 outline: none;
             }}
 
-            /* Tables - Ultra-premium Apple quality */
-            QTableView#cardTable {{
-                background: transparent;
-                border: none;
-                border-radius: 0px;
-                selection-background-color: transparent;
-                selection-color: {t['text']};
-                gridline-color: transparent;
-                padding: 0px;
+            /* Tables - Luxury precision */
+            QTableView#c                background: transparent;
+                color: {t['text']};
+                border: 1px solid {t['border']};
                 outline: none;
-                show-decoration-selected: 0;
+                font-size: 18px;
+                min-width: 40px;
+                max-width: 40px;
+                min-height: 40px;
+                max-height: 40px;
+                border-radius: 20px;
+                padding: 0px;lected: 0;
                 alternate-background-color: transparent;
             }}
             QTableView#cardTable::item {{
-                padding: 14px 18px;
+                padding: 16px 20px;
                 border: 0;
                 border-bottom: 1px solid {t['grid']};
                 margin: 0px;
@@ -5052,7 +5064,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 background: {t['surface']};
             }}
 
-            /* Side panel - Clean Apple style */
+            /* Side panel - Elegant card design */
             QFrame#sideOuter {{
                 background: {t['card']};
                 border: 1px solid {t['border']};
@@ -5063,7 +5075,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 border: none; 
             }}
 
-            /* Buttons - Rounded, line only */
+            /* Buttons - Thin elegant outlines */
             QPushButton {{ 
                 background: transparent; 
                 border: 1px solid {t['border']}; 
@@ -5101,7 +5113,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
             ToggleSwitch, ToggleSwitch * {{ background: transparent; border: 0; }}
             {scrollbars}
 
-            /* Navigation Buttons - Clean */
+            /* Navigation buttons - Refined circular design */
             QWidget#presetNav {{ 
                 background: transparent; 
                 border: none;
