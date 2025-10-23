@@ -59,7 +59,6 @@ DEFAULT_NVRAM_NAME = "nvram.txt"
 
 # --------------------------------------------------------------------------------------
 # Theme
-# --------------------------------------------------------------------------------------
 THEME = {
     # Core Background - Luxury off-white and champagne
     "bg":            "#fafafa",      # Main background - pristine off-white
@@ -102,14 +101,14 @@ THEME = {
     "success":       "#2d5a27",      # Success - deep forest green
     "success_light": "#e8f5e8",      # Success background
     "warn":          "#b8860b",      # Warning - sophisticated gold
-    "warn_light":    "#fef9e7",      # Warning background
-    "error":         "#8b0000",      # Error - deep burgundy
-    "error_light":   "#ffeaea",      # Er    "s    "switch_on":     "#d4af37",      # On state - luxury gold
-    "switch_track":  "#f0f0f0",      # Switch track - champagne beige
+     "error":         "#8b0000",      # Error - deep burgundy
+        # Switch - Elegant toggle design
+    "switch_off":    "#e0e0e0",      # Off state - subtle gray
+    "    "switch_track":  "#f0f0f0",      # Switch track - champagne beige
     
     # Luxury gradients and effects
-    "gradient_start": "#ffffff",     # Gradient start - pure white
-    "gra    "glass_effect":   "rgba(255, 255, 255, 0.85)",  # Glass morphism
+    "gradi    "gradient_end":   "#f8f8f8",     # Gradient end - warm white
+    "glass_effect":   "rgba(255, 255, 255, 0.85)",  # Glass morphism
 }f state
     "switch_on":     "#5858ee",      # On state
 }
