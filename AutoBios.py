@@ -62,41 +62,46 @@ DEFAULT_NVRAM_PATH = BASE_DIR / DEFAULT_NVRAM_NAME
 # Theme
 # --------------------------------------------------------------------------------------
 THEME = {
-    # Background colors - deeper, more consistent
-    "bg":            "#0a0e13",
-    "card":          "#0f1419",
-    "card_hover":    "#151b22",
-
-    # Text colors - softer for reduced eye strain
-    "text":          "#e4e6eb",
-    "muted":         "#9ca3af",
-
-    # Border and grid colors
-    "border":        "#1a2332",
-    "grid":          "#1f2937",
-
-    # Input field colors
-    "input_bg":      "#0d1117",
-    "input_border":  "#30363d",
-    "input_focus":   "#4a90e2",
-
-    # Selection and state colors
-    "selection":     "#1e3a5f",
-    "tab_selected":  "#151d28",
-
-    # Status colors
-    "warn":          "#f59e0b",
-    "success":       "#10b981",
-    "error":         "#ef4444",
-
-    # Switch colors
-    "switch_off":    "#1f2937",
-    "switch_on":     "#4a90e2",
-
-    # Accent colors
-    "accent":        "#4a90e2",
-    "accent_hover":  "#5b9def",
-    "accent_press":  "#3a7fcd",
+    # Core Background - Deep professional midnight
+    "bg":            "#0a0a12",      # Main background
+    "card":          "#12121c",      # Card surfaces
+    "card_hover":    "#18182a",      # Hover state
+    
+    # Surfaces - Consistent layers
+    "surface":       "#0e0e18",      # Secondary surface
+    "elevated":      "#161622",      # Elevated elements
+    
+    # Text - Perfect contrast
+    "text":          "#e8e8f0",      # Primary text
+    "text_secondary":"#9898b0",      # Secondary text
+    "text_muted":    "#686888",      # Muted text
+    "muted":         "#686888",      # Muted (legacy)
+    
+    # Borders - Unified system
+    "border":        "#1e1e2c",      # Primary border
+    "border_subtle": "#28283c",      # Subtle divider
+    "grid":          "#1a1a28",      # Grid lines
+    
+    # Interactive - Consistent purple system
+    "accent":        "#5858ee",      # Main accent
+    "accent_hover":  "#6868ff",      # Hover state
+    "accent_dim":    "#4848cc",      # Pressed state
+    "accent_glow":   "rgba(88, 88, 238, 0.15)",  # Glow effect
+    
+    # Input states
+    "input_bg":      "#0e0e18",      # Input background (for combo boxes)
+    "input_border":  "#2a2a3c",      # Input border
+    "input_focus":   "#5858ee",      # Focus state
+    "selection":     "#24243a",      # Selection bg
+    
+    # Status - Vibrant & clear
+    "success":       "#00dd88",      # Success green
+    "warn":          "#ffaa44",      # Warning gold (legacy)
+    "error":         "#ff4477",      # Error red
+    
+    # Switch
+    "switch_off":    "#1e1e2c",      # Off state
+    "switch_on":     "#5858ee",      # On state
 }
 
 # --------------------------------------------------------------------------------------
@@ -875,30 +880,29 @@ PRESET_ORDER_ADV_INTEL = [
 ]
 PRESET_ORDER_ADV_AMD = [
 "Disable C-States",
-"CPU Powersavings",
-"Disable Thermal Settings",
-"Disable Voltage / Overclocking Limits",
-"Tune Memory Settings",
-"Enable PCI Delay Optimization",
-"Disable Snoop",
-"Disable Hyper Threading",
-"Disable ClkReq",
-"Frequency Settings",
-"PCIe Management",
+"Disable SMT",
 "Disable Gating",
+"Disable Sleep/Standby states",
+"PCIe & Link Power Management",
+"SATA Power Management",
+"Disable Security And Virtualization",
+"Disable Legacy and port functions ",
+"Disable Onboard Device Features",
+"Disable Prefetchers And Instruction Handling",
+"Disable Memory Error Detection",
+"Enable Memory Performance settings",
+"Memory Organization and address mapping",
+"Enable Re-Size BAR",
+"Optimize PCIe for Performance",
+"Optimize xGMI",
+"Disable Network PXE & Protocols",
 "Disable Spread Spectrum",
-"Disable Sleep States",
-"Disable WakeOn",
-"Disable Security",
-"Disable TPM & Secure Boot",
-"Disable Virtualization",
-"Disable Error Handling",
-"Disable PCH Settings",
-"Tune EC Settings",
-"Disable Audio",
-"Disable RGB",
-"Disable PEP",
-"Disable Legacy",
+"Enable SoC/Uncore OC Mode",
+"Disable Determinism Control",
+"Disable Error Reporting & Handling",
+"Disable Debugging and Diagnostics",
+"Disable System Warnings",
+"Optimize SPI Speed",
 ]
 
 AMD_PRESETS_ADV: Dict[str, Dict[str, Any]] = {
@@ -1903,8 +1907,8 @@ class SettingsModel(QAbstractTableModel):
         self._update_sets_after_edit(row)
         # Clear cache for affected cells
         self._invalidate_cache_for_row(row)
-        self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
-        self.dataChanged.emit(self.index(row, 3), self.index(row, 3), [Qt.DisplayRole])
+        # Emit signals ONLY for changed cells - instant response
+        self.dataChanged.emit(index, self.index(row, 3), [Qt.DisplayRole, Qt.EditRole])
         self.stagedChanged.emit()
         return True
 
@@ -2043,7 +2047,7 @@ class ComboOrLineDelegate(QtWidgets.QStyledItemDelegate):
                 border-radius:8px;
                 selection-background-color:{THEME['accent']};
                 selection-color:#ffffff;
-                outline:0;
+                border:0;
             }}
             QComboBox QAbstractItemView::item{{padding:8px;border-radius:4px;}}
             QComboBox QAbstractItemView::item:hover{{background:{THEME['card_hover']};}}
@@ -2572,10 +2576,10 @@ class ScewinRunner(QtCore.QObject):
             self.finished.emit(result)
 
 
-# --------------------------------------------------------------------------------------
-# Modern Toast Notification System
-# --------------------------------------------------------------------------------------
-class ToastNotification(QtWidgets.QFrame):
+# ============================================================================
+# PREMIUM TOAST NOTIFICATION SYSTEM - BUILT FROM SCRATCH
+# ============================================================================
+class PremiumToast(QtWidgets.QFrame):
     """
     Modern dark toast notification with animations
     - Slides up from bottom center
@@ -2592,13 +2596,27 @@ class ToastNotification(QtWidgets.QFrame):
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setObjectName("ToastBubble")
         self.setAutoFillBackground(False)
+        
+        # Setup opacity effect for fade animations
+        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self._opacity_effect)
+        self._opacity_effect.setOpacity(1.0)
 
-        # Unified rounded toast styling - matches all toasts
+        # Premium toast styling - glassmorphism with subtle depth
+        color_accents = {
+            "success": THEME['success'],
+            "error": THEME['error'],
+            "info": THEME['accent']
+        }
+        accent_color = color_accents.get(toast_type, THEME['accent'])
+        
         self.setStyleSheet(f"""
             QWidget#ToastBubble {{
-                background: rgba(15, 20, 25, 0.96);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-radius: 12px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 rgba(18, 23, 28, 250),
+                    stop:1 rgba(12, 16, 20, 250));
+                border: 1.5px solid rgba(255, 255, 255, 18);
+                border-radius: 14px;
                 padding: 0px;
                 margin: 0px;
             }}
@@ -2612,12 +2630,12 @@ class ToastNotification(QtWidgets.QFrame):
             }}
         """)
 
-        self.setMaximumWidth(500)
-        self.setMinimumWidth(300)
+        self.setMaximumWidth(480)
+        self.setMinimumWidth(320)
 
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(10, 6, 10, 6)
-        layout.setSpacing(8)
+        layout.setContentsMargins(16, 12, 16, 12)  # More generous padding
+        layout.setSpacing(10)
 
         # Icon + Text row with zero spacing
         top_row = QtWidgets.QHBoxLayout()
@@ -2637,11 +2655,18 @@ class ToastNotification(QtWidgets.QFrame):
         icon_label.setFixedSize(18, 18)
         top_row.addWidget(icon_label)
 
-        # Message text - ensure no leading space
+        # Message text - premium typography
         msg_label = QtWidgets.QLabel(text.strip())
         msg_label.setWordWrap(True)
-        msg_label.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; padding: 0px; margin: 0px;")
-        msg_label.setContentsMargins(6, 0, 0, 0)
+        msg_label.setStyleSheet(f"""
+            color: {THEME['text']}; 
+            font-size: 13px; 
+            font-weight: 500;
+            padding: 0px; 
+            margin: 0px;
+            line-height: 1.4;
+        """)
+        msg_label.setContentsMargins(10, 0, 0, 0)
         top_row.addWidget(msg_label, 1)
 
         layout.addLayout(top_row)
@@ -2696,14 +2721,14 @@ class ToastNotification(QtWidgets.QFrame):
 
         self.adjustSize()
 
-        # Animations
-        self.fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
-        self.fade_anim.setDuration(200)
-        self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        # Premium smooth animations with perfect easing curves
+        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim.setDuration(400)  # Longer, smoother
+        self.fade_anim.setEasingCurve(QtCore.QEasingCurve.InOutCubic)  # Silky smooth
 
         self.slide_anim = QtCore.QPropertyAnimation(self, b"pos")
-        self.slide_anim.setDuration(300)
-        self.slide_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        self.slide_anim.setDuration(500)  # More elegant timing
+        self.slide_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)  # Smooth deceleration
 
         # Auto-dismiss timer (unless error with details)
         if toast_type != "error" or not details:
@@ -2740,83 +2765,258 @@ class ToastNotification(QtWidgets.QFrame):
         painter.end()
         return pixmap
 
-    def show_toast(self, parent_widget):
-        """Show toast with slide-up animation"""
-        # Position at bottom center of parent
+    def show_toast(self, parent_widget, y_offset=0):
+        """Show toast at top-right with premium slide-down animation"""
+        # Position at top-right of parent (below custom title bar)
         parent_rect = parent_widget.geometry()
-        parent_center_x = parent_rect.center().x()
-        parent_bottom_y = parent_rect.bottom()
+        
+        # Title bar height + margins
+        title_bar_height = 40
+        top_margin = 20  # Slightly more breathing room
+        right_margin = 20
+        
+        # Final position (top-right, below title bar)
+        final_x = parent_rect.right() - self.width() - right_margin
+        final_y = parent_rect.top() + title_bar_height + top_margin
 
-        # Start position (below screen)
-        start_x = parent_center_x - self.width() // 2
-        start_y = parent_bottom_y
-
-        # End position (visible, 60px from bottom)
-        end_x = start_x
-        end_y = parent_bottom_y - self.height() - 60
+        # Start position (slide from above, but smoothly)
+        start_x = final_x
+        start_y = parent_rect.top() - self.height() - 10
 
         self.move(start_x, start_y)
         self.show()
+        self._opacity_effect.setOpacity(0.0)  # Start fully transparent
 
-        # Fade in
+        # Premium fade in - smooth and elegant
         self.fade_anim.setStartValue(0.0)
-        self.fade_anim.setEndValue(1.0)
+        self.fade_anim.setEndValue(0.98)  # Almost fully opaque for premium feel
         self.fade_anim.start()
 
-        # Slide up
+        # Premium slide down - silky smooth
         self.slide_anim.setStartValue(QtCore.QPoint(start_x, start_y))
-        self.slide_anim.setEndValue(QtCore.QPoint(end_x, end_y))
+        self.slide_anim.setEndValue(QtCore.QPoint(final_x, final_y))
         self.slide_anim.start()
 
     def hide_toast(self):
-        """Hide toast with fade-out animation"""
-        self.fade_anim.setStartValue(self.windowOpacity())
+        """Hide toast with premium fade-out animation"""
+        # Slide up slightly while fading - elegant exit
+        current_pos = self.pos()
+        self.slide_anim.setStartValue(current_pos)
+        self.slide_anim.setEndValue(QtCore.QPoint(current_pos.x(), current_pos.y() - 30))
+        self.slide_anim.setDuration(350)  # Smooth exit
+        self.slide_anim.setEasingCurve(QtCore.QEasingCurve.InCubic)
+        self.slide_anim.start()
+        
+        # Premium fade out
+        self.fade_anim.setStartValue(self._opacity_effect.opacity())
         self.fade_anim.setEndValue(0.0)
+        self.fade_anim.setDuration(350)
+        self.fade_anim.setEasingCurve(QtCore.QEasingCurve.InCubic)
         self.fade_anim.finished.connect(self.deleteLater)
         self.fade_anim.start()
 
+    def hide_toast_immediate(self):
+        """Immediately hide toast without animation - for replacement"""
+        self.fade_anim.stop()
+        self.slide_anim.stop()
+        self.deleteLater()
+
+
+
+# ============================================================================
+# BRAND NEW PREMIUM NOTIFICATION SYSTEM
+# ============================================================================
+
+class PremiumNotification(QtWidgets.QWidget):
+    """Embedded notification that matches app theme"""
+    
+    def __init__(self, message: str, notification_type: str = "info", parent=None):
+        super().__init__(parent)
+        
+        # Embedded widget - no floating
+        self.setAttribute(Qt.WA_TranslucentBackground, False)
+        
+        # Theme-matching color palette
+        accent_colors = {
+            "success": THEME['success'],
+            "error": THEME['error'],
+            "info": THEME['accent']
+        }
+        accent = accent_colors.get(notification_type, accent_colors["info"])
+        
+        # Premium card matching dialog style
+        self.card = QtWidgets.QWidget()
+        self.card.setObjectName("NotificationCard")
+        self.card.setStyleSheet(f"""
+            QWidget#NotificationCard {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 12px;
+            }}
+        """)
+        
+        # Premium shadow
+        shadow = QtWidgets.QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(30)
+        shadow.setColor(QtGui.QColor(0, 0, 0, 80))
+        shadow.setOffset(0, 6)
+        self.card.setGraphicsEffect(shadow)
+        
+        # Premium layout with generous padding
+        layout = QtWidgets.QHBoxLayout(self.card)
+        layout.setContentsMargins(20, 14, 20, 14)
+        layout.setSpacing(12)
+        
+        # Icon indicator
+        icon_map = {"success": "✓", "error": "✕", "info": "ℹ"}
+        icon_label = QtWidgets.QLabel(icon_map.get(notification_type, "ℹ"))
+        icon_label.setStyleSheet(f"""
+            color: {accent};
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+        """)
+        icon_label.setFixedWidth(20)
+        icon_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(icon_label)
+        
+        # Message - premium typography
+        msg = QtWidgets.QLabel(message)
+        msg.setWordWrap(False)
+        msg.setStyleSheet(f"""
+            color: {THEME['text']};
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+        """)
+        layout.addWidget(msg)
+        
+        # Wrapper
+        wrapper = QtWidgets.QVBoxLayout(self)
+        wrapper.setContentsMargins(0, 0, 0, 0)
+        wrapper.addWidget(self.card)
+        
+        # Premium size
+        self.adjustSize()
+        self.setMinimumHeight(50)
+        self.setMaximumHeight(50)
+        
+        # Simple smooth fade animation only
+        self.opacity_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        self.opacity_anim.setDuration(250)  # Quick and smooth
+        self.opacity_anim.setEasingCurve(QtCore.QEasingCurve.InOutCubic)  # Silky smooth
+        
+        self.hide_timer = QtCore.QTimer()
+        self.hide_timer.setSingleShot(True)
+        self.hide_timer.timeout.connect(self.fade_out)
+    
+    def show_notification(self, parent_widget, duration=3000):
+        """Show with simple smooth fade - no sliding"""
+        # Position above title bar
+        final_x = 20
+        final_y = 12  # Just below top edge
+        
+        self.move(final_x, final_y)
+        self.setWindowOpacity(0.0)
+        self.show()
+        self.raise_()  # Ensure it's on top
+        
+        # Simple smooth fade in only
+        self.opacity_anim.setStartValue(0.0)
+        self.opacity_anim.setEndValue(1.0)
+        self.opacity_anim.start()
+        
+        self.hide_timer.start(duration)
+    
+    def fade_out(self):
+        """Simple smooth fade out"""
+        self.hide_timer.stop()
+        
+        # Simple smooth opacity fade only
+        self.opacity_anim.setStartValue(self.windowOpacity())
+        self.opacity_anim.setEndValue(0.0)
+        self.opacity_anim.setDuration(300)
+        self.opacity_anim.setEasingCurve(QtCore.QEasingCurve.InOutCubic)
+        self.opacity_anim.finished.connect(self.deleteLater)
+        self.opacity_anim.start()
+    
+    def remove_instantly(self):
+        """Instant removal for replacement"""
+        self.hide_timer.stop()
+        self.opacity_anim.stop()
+        self.deleteLater()
+
+
+class NotificationSystem:
+    """Disabled notification system - does nothing"""
+    
+    def __init__(self, parent_widget):
+        self.parent = parent_widget
+        self.current = None
+    
+    def _show(self, msg: str, ntype: str, duration: int):
+        # Notifications disabled - do nothing
+        pass
+    
+    def _cleanup(self):
+        pass
+    
+    def success(self, msg: str, duration: int = 3000, duration_ms: int = None):
+        # Notifications disabled - do nothing
+        pass
+    
+    def error(self, msg: str, duration: int = 4000, duration_ms: int = None):
+        # Notifications disabled - do nothing
+        pass
+    
+    def info(self, msg: str, duration: int = 3000, duration_ms: int = None):
+        # Notifications disabled - do nothing
+        pass
+
+
+
 
 class LoadingSpinner(QtWidgets.QWidget):
-    """Modern loading spinner with smooth animation"""
+    """Modern loading spinner animation"""
     
-    def __init__(self, parent=None, size=24, color=None):
+    def __init__(self, parent=None, size=32, color=None):
         super().__init__(parent)
         self.size = size
         self.color = color or THEME['accent']
         self.angle = 0
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.update_animation)
         self.setFixedSize(size, size)
-        self.setAttribute(Qt.WA_TranslucentBackground)
         
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.rotate)
+        self.timer.setInterval(50)
+    
     def start(self):
-        """Start the spinning animation"""
-        self.timer.start(16)  # ~60 FPS
+        self.timer.start()
         self.show()
-        
+    
     def stop(self):
-        """Stop the spinning animation"""
         self.timer.stop()
         self.hide()
-        
-    def update_animation(self):
-        """Update the rotation angle"""
-        self.angle = (self.angle + 8) % 360
+    
+    def rotate(self):
+        self.angle = (self.angle + 30) % 360
         self.update()
-        
+    
     def paintEvent(self, event):
-        """Paint the spinning circle"""
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         
-        # Create a circular gradient
-        gradient = QtGui.QConicalGradient(self.size // 2, self.size // 2, self.angle)
+        painter.translate(self.size / 2, self.size / 2)
+        painter.rotate(self.angle)
+        
+        gradient = QtGui.QConicalGradient(0, 0, 0)
         gradient.setColorAt(0, QtGui.QColor(self.color))
         gradient.setColorAt(0.7, QtGui.QColor(self.color))
         gradient.setColorAt(0.8, QtGui.QColor(self.color).lighter(150))
         gradient.setColorAt(1, Qt.transparent)
         
-        # Draw the spinner
         painter.setPen(Qt.NoPen)
         painter.setBrush(QtGui.QBrush(gradient))
         painter.drawEllipse(2, 2, self.size - 4, self.size - 4)
@@ -2827,10 +3027,8 @@ class ProgressBar(QtWidgets.QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.value = 0
+        self._value = 0
         self.maximum = 100
-        self.animation = QtCore.QPropertyAnimation(self, b"value")
-        self.animation.setDuration(200)
         self.setFixedHeight(6)
         self.setStyleSheet(f"""
             QWidget {{
@@ -2838,96 +3036,241 @@ class ProgressBar(QtWidgets.QWidget):
                 border-radius: 3px;
             }}
         """)
-        
+    
     def setValue(self, value):
-        """Set progress value with animation"""
-        self.value = max(0, min(value, self.maximum))
-        self.animation.stop()
-        self.animation.setStartValue(self.value)
-        self.animation.setEndValue(self.value)
-        self.animation.start()
+        self._value = min(value, self.maximum)
         self.update()
-        
+    
     def setMaximum(self, maximum):
-        """Set maximum value"""
         self.maximum = maximum
-        
+    
     def paintEvent(self, event):
-        """Paint the progress bar"""
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         
-        # Background
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QtGui.QBrush(QtGui.QColor(THEME['input_border'])))
-        painter.drawRoundedRect(self.rect(), 3, 3)
+        if self.maximum > 0 and self._value > 0:
+            width = int((self._value / self.maximum) * self.width())
+            painter.fillRect(0, 0, width, self.height(), QtGui.QColor(THEME['accent']))
+
+
+
+
+# --------------------------------------------------------------------------------------
+# Apple-Style Import Progress Dialog
+# --------------------------------------------------------------------------------------
+class AppleImportDialog(QtWidgets.QDialog):
+    """
+    Beautiful Apple-style import progress dialog with:
+    - Smooth animations
+    - Progress bar with indeterminate mode
+    - Status messages
+    - Success/error states
+    """
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
         
-        # Progress
-        if self.value > 0:
-            progress_width = int((self.value / self.maximum) * self.width())
-            progress_rect = QtCore.QRect(0, 0, progress_width, self.height())
-            
-            gradient = QtGui.QLinearGradient(0, 0, progress_width, 0)
-            gradient.setColorAt(0, QtGui.QColor(THEME['accent']))
-            gradient.setColorAt(1, QtGui.QColor(THEME['accent_hover']))
-            
-            painter.setBrush(QtGui.QBrush(gradient))
-            painter.drawRoundedRect(progress_rect, 3, 3)
-
-
-class NotificationManager(QtCore.QObject):
-    """
-    Centralized toast notification system with deduplication
-    Replaces old glow dialogs with modern non-blocking toasts
-    """
-
-    def __init__(self, parent_widget):
-        super().__init__()
-        self.parent_widget = parent_widget
-        self._last_messages: Dict[str, float] = {}  # message -> timestamp
-        self._debounce_ms = 1000  # 1 second debounce
-
-    def _should_show(self, message: str) -> bool:
-        """Check if message should be shown (not duplicate within debounce period)"""
-        import time
-        now = time.time() * 1000  # milliseconds
-        key = message.lower().strip()
-
-        if key in self._last_messages:
-            elapsed = now - self._last_messages[key]
-            if elapsed < self._debounce_ms:
-                return False
-
-        self._last_messages[key] = now
-        return True
-
-    def notify_success(self, text: str, duration_ms: int = 2200, subtitle: str = None):
-        """Show success toast (no action buttons)"""
-        if not self._should_show(text):
-            return
-
-        display_text = text
-        if subtitle:
-            display_text = f"{text}\n{subtitle}"
-
-        toast = ToastNotification(display_text, "success", duration_ms, parent=self.parent_widget)
-        toast.show_toast(self.parent_widget)
-
-    def notify_error(self, text: str, details: str = None):
-        """Show error toast with optional details expander"""
-        if not self._should_show(text):
-            return
-
-        toast = ToastNotification(text, "error", 5000, details=details, parent=self.parent_widget)
-        toast.show_toast(self.parent_widget)
-
-    def notify_info(self, text: str, duration_ms: int = 2200):
-        """Show info toast"""
-        if not self._should_show(text):
-            return
-
-        toast = ToastNotification(text, "info", duration_ms, parent=self.parent_widget)
-        toast.show_toast(self.parent_widget)
+        # Frameless, centered, modal
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        self.setFixedSize(420, 240)
+        
+        # Store parent for positioning
+        self._parent = parent
+        
+        # Main container with Apple-style design
+        self.container = QtWidgets.QWidget()
+        self.container.setObjectName("appleImportContainer")
+        self.container.setStyleSheet(f"""
+            QWidget#appleImportContainer {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 16px;
+            }}
+        """)
+        
+        container_layout = QtWidgets.QVBoxLayout(self)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.addWidget(self.container)
+        
+        layout = QtWidgets.QVBoxLayout(self.container)
+        layout.setContentsMargins(40, 36, 40, 36)
+        layout.setSpacing(24)
+        layout.setAlignment(Qt.AlignCenter)
+        
+        # Status icon (animated spinner or checkmark)
+        self.icon_label = QtWidgets.QLabel()
+        self.icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label.setFixedSize(56, 56)
+        layout.addWidget(self.icon_label, 0, Qt.AlignCenter)
+        
+        # Title label
+        self.title_label = QtWidgets.QLabel("Importing...")
+        self.title_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['text']};
+                font-size: 19px;
+                font-weight: 600;
+                background: transparent;
+                letter-spacing: -0.2px;
+            }}
+        """)
+        self.title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.title_label)
+        
+        # Subtitle/status label
+        self.status_label = QtWidgets.QLabel("Applying BIOS settings...")
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['muted']};
+                font-size: 13px;
+                font-weight: 450;
+                background: transparent;
+                letter-spacing: 0.1px;
+            }}
+        """)
+        self.status_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.status_label)
+        
+        # Progress bar (Apple-style)
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(0)  # Indeterminate mode
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setFixedHeight(4)
+        self.progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                background: {THEME['bg']};
+                border: none;
+                border-radius: 2px;
+            }}
+            QProgressBar::chunk {{
+                background: {THEME['accent']};
+                border-radius: 2px;
+            }}
+        """)
+        layout.addWidget(self.progress_bar)
+        
+        # Animations
+        self._opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
+        self.container.setGraphicsEffect(self._opacity_effect)
+        
+        self.fade_anim = QtCore.QPropertyAnimation(self._opacity_effect, b"opacity")
+        self.fade_anim.setDuration(300)
+        self.fade_anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        
+        # Start with fade in
+        self._opacity_effect.setOpacity(0.0)
+        
+    def showEvent(self, event):
+        """Fade in smoothly when shown and center on parent"""
+        super().showEvent(event)
+        
+        # Center on parent window
+        if self._parent:
+            parent_geo = self._parent.geometry()
+            x = parent_geo.x() + (parent_geo.width() - self.width()) // 2
+            y = parent_geo.y() + (parent_geo.height() - self.height()) // 2
+            self.move(x, y)
+        
+        self.fade_anim.setStartValue(0.0)
+        self.fade_anim.setEndValue(1.0)
+        self.fade_anim.start()
+        
+    def set_importing(self, message="Applying BIOS settings..."):
+        """Show importing state with spinner"""
+        self.title_label.setText("Importing...")
+        self.status_label.setText(message)
+        self.progress_bar.setMaximum(0)  # Indeterminate
+        
+        # Create animated spinner icon
+        self._start_spinner()
+        
+    def set_success(self, message="Import successful!"):
+        """Show success state with checkmark"""
+        self.title_label.setText("Import Successful")
+        self.title_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['success']};
+                font-size: 19px;
+                font-weight: 600;
+                background: transparent;
+                letter-spacing: -0.2px;
+            }}
+        """)
+        self.status_label.setText(message)
+        self.progress_bar.setMaximum(100)
+        self.progress_bar.setValue(100)
+        
+        # Show checkmark icon
+        self._show_success_icon()
+        
+        # Auto close after delay
+        QtCore.QTimer.singleShot(1500, self.close_with_fade)
+        
+    def set_error(self, message="Import failed"):
+        """Show error state"""
+        self.title_label.setText("Import Failed")
+        self.title_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['error']};
+                font-size: 19px;
+                font-weight: 600;
+                background: transparent;
+                letter-spacing: -0.2px;
+            }}
+        """)
+        self.status_label.setText(message)
+        self.progress_bar.hide()
+        
+        # Show error icon
+        self._show_error_icon()
+        
+        # Auto close after delay
+        QtCore.QTimer.singleShot(2500, self.close_with_fade)
+        
+    def _start_spinner(self):
+        """Create animated spinner"""
+        self.icon_label.setText("⟳")
+        self.icon_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['accent']};
+                font-size: 48px;
+                background: transparent;
+            }}
+        """)
+        
+    def _show_success_icon(self):
+        """Show success checkmark"""
+        self.icon_label.setText("✓")
+        self.icon_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['success']};
+                font-size: 48px;
+                background: transparent;
+                font-weight: 600;
+            }}
+        """)
+        
+    def _show_error_icon(self):
+        """Show error icon"""
+        self.icon_label.setText("✕")
+        self.icon_label.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME['error']};
+                font-size: 48px;
+                background: transparent;
+                font-weight: 600;
+            }}
+        """)
+        
+    def close_with_fade(self):
+        """Close with smooth fade out"""
+        self.fade_anim.setStartValue(1.0)
+        self.fade_anim.setEndValue(0.0)
+        self.fade_anim.finished.connect(self.accept)
+        self.fade_anim.start()
 
 
 # --------------------------------------------------------------------------------------
@@ -2935,134 +3278,191 @@ class NotificationManager(QtCore.QObject):
 # --------------------------------------------------------------------------------------
 class NoFileLoadedDialog(QtWidgets.QDialog):
     """
-    Professional dialog shown when a file is required but none is loaded
+    Redesigned "No file loaded" dialog with clean outline style
     Features:
-    - Primary actions: Load file, Import via SCEWIN
-    - Drag & drop zone for nvram.txt
-    - Dark theme, large buttons
-    - Esc closes, Enter triggers primary
+    - Dashed drop zone (1px, transparent fill)
+    - Side-by-side outline buttons
+    - Clean, minimal layout
+    - ESC/Enter keyboard handling
     """
 
     load_file_requested = Signal()
-    import_requested = Signal()
     export_requested = Signal()
     file_dropped = Signal(Path)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("No File Loaded")
+        
+        # Frameless for consistency
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setModal(True)
-        self.setFixedWidth(480)
-
-        # Dark styling
-        self.setStyleSheet(f"""
-            QDialog {{
-                background: {THEME['bg']};
+        
+        # Main container (store as instance variable for animations)
+        self.container = QtWidgets.QWidget()
+        self.container.setObjectName("noFileContainer")
+        self.container.setStyleSheet(f"""
+            QWidget#noFileContainer {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 12px;
             }}
         """)
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(32, 32, 32, 32)
+        
+        container_layout = QtWidgets.QVBoxLayout(self)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.addWidget(self.container)
+        
+        layout = QtWidgets.QVBoxLayout(self.container)
+        layout.setContentsMargins(32, 28, 32, 28)
         layout.setSpacing(20)
 
         # Title
         title = QtWidgets.QLabel("No file loaded")
-        title.setStyleSheet(f"color: {THEME['text']}; font-size: 24px; font-weight: 600;")
+        title.setStyleSheet(f"color: {THEME['text']}; font-size: 20px; font-weight: 600; background: transparent;")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        # Message
-        message = QtWidgets.QLabel("Load an nvram.txt file first to use this feature.")
-        message.setStyleSheet(f"color: {THEME['muted']}; font-size: 14px;")
-        message.setAlignment(Qt.AlignCenter)
-        message.setWordWrap(True)
-        layout.addWidget(message)
+        # Subtext
+        subtext = QtWidgets.QLabel("Load an nvram.txt file first to use this feature.")
+        subtext.setStyleSheet(f"color: {THEME['muted']}; font-size: 14px; background: transparent;")
+        subtext.setAlignment(Qt.AlignCenter)
+        subtext.setWordWrap(True)
+        layout.addWidget(subtext)
 
-        # Drag & drop zone
-        drop_zone = QtWidgets.QFrame()
-        drop_zone.setAcceptDrops(True)
-        drop_zone.setStyleSheet(f"""
+        # Dashed drop zone
+        self.drop_zone = QtWidgets.QFrame()
+        self.drop_zone.setAcceptDrops(True)
+        self.drop_zone.setMinimumHeight(120)
+        self.drop_zone.setStyleSheet(f"""
             QFrame {{
-                background: {THEME['card']};
-                border: 2px dashed {THEME['border']};
+                background: transparent;
+                border: 1px dashed {THEME['input_border']};
                 border-radius: 12px;
-                padding: 32px;
             }}
         """)
 
-        drop_layout = QtWidgets.QVBoxLayout(drop_zone)
+        drop_layout = QtWidgets.QVBoxLayout(self.drop_zone)
         drop_layout.setAlignment(Qt.AlignCenter)
+        drop_layout.setSpacing(8)
 
+        # Folder icon
         drop_icon = QtWidgets.QLabel("📁")
-        drop_icon.setStyleSheet("font-size: 48px;")
+        drop_icon.setStyleSheet("font-size: 42px; background: transparent;")
         drop_icon.setAlignment(Qt.AlignCenter)
         drop_layout.addWidget(drop_icon)
 
-        drop_text = QtWidgets.QLabel("Drop nvram.txt here")
-        drop_text.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px;")
+        # Drop text
+        drop_text = QtWidgets.QLabel("Drag & drop nvram.txt or click to browse")
+        drop_text.setStyleSheet(f"color: {THEME['muted']}; font-size: 13px; background: transparent;")
         drop_text.setAlignment(Qt.AlignCenter)
         drop_layout.addWidget(drop_text)
 
-        # Connect drop events
-        drop_zone.dragEnterEvent = self._drag_enter
-        drop_zone.dropEvent = self._drop
+        # Wire drop events
+        self.drop_zone.dragEnterEvent = self._drag_enter
+        self.drop_zone.dropEvent = self._drop
 
-        layout.addWidget(drop_zone)
+        layout.addWidget(self.drop_zone)
 
-        # Action buttons
-        btn_layout = QtWidgets.QVBoxLayout()
-        btn_layout.setSpacing(12)
+        # Buttons row (side by side)
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(12)
 
-        # Primary: Load file
-        self.load_btn = QtWidgets.QPushButton("Load nvram.txt…")
+        # Browse button (outline style)
+        self.load_btn = QtWidgets.QPushButton("Browse nvram.txt…")
+        self.load_btn.setMinimumHeight(40)
         self.load_btn.setCursor(Qt.PointingHandCursor)
-        self.load_btn.setMinimumHeight(48)
         self.load_btn.setStyleSheet(f"""
             QPushButton {{
-                background: {THEME['accent']};
-                color: #ffffff;
-                border: none;
-                border-radius: 8px;
-                font-size: 15px;
-                font-weight: 600;
-                padding: 12px 24px;
+                background: transparent;
+                border: 1px solid {THEME['input_border']};
+                border-radius: 10px;
+                padding: 10px 20px;
+                color: {THEME['text']};
+                font-size: 14px;
             }}
             QPushButton:hover {{
-                background: {THEME['accent_hover']};
+                background: transparent;
+                border-color: {THEME['input_focus']};
             }}
             QPushButton:pressed {{
-                background: {THEME['accent_press']};
+                background: rgba(255, 255, 255, 25);
+                border-color: {THEME['accent']};
             }}
         """)
         self.load_btn.clicked.connect(self._on_load)
-        btn_layout.addWidget(self.load_btn)
+        self.load_btn.setDefault(True)
+        btn_row.addWidget(self.load_btn)
 
-        # Secondary: Export via SCEWIN
+        # Export button (outline style)
         self.export_btn = QtWidgets.QPushButton("Export (SCEWIN)")
+        self.export_btn.setMinimumHeight(40)
         self.export_btn.setCursor(Qt.PointingHandCursor)
-        self.export_btn.setMinimumHeight(44)
         self.export_btn.setStyleSheet(f"""
             QPushButton {{
-                background: {THEME['card']};
-                color: {THEME['text']};
-                border: 1px solid {THEME['border']};
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 500;
+                background: transparent;
+                border: 1px solid {THEME['input_border']};
+                border-radius: 10px;
                 padding: 10px 20px;
+                color: {THEME['text']};
+                font-size: 14px;
             }}
             QPushButton:hover {{
-                background: {THEME['card_hover']};
+                background: transparent;
+                border-color: {THEME['input_focus']};
+            }}
+            QPushButton:pressed {{
+                background: rgba(255, 255, 255, 25);
                 border-color: {THEME['accent']};
             }}
         """)
         self.export_btn.clicked.connect(self._on_export)
-        btn_layout.addWidget(self.export_btn)
+        btn_row.addWidget(self.export_btn)
 
-        layout.addLayout(btn_layout)
-
-        # Keyboard shortcuts
-        self.load_btn.setDefault(True)  # Enter triggers this
+        layout.addLayout(btn_row)
+        
+        self.setFixedWidth(460)
+        
+        # Fade-in animation
+        self.opacity_effect = QtWidgets.QGraphicsOpacityEffect()
+        self.container.setGraphicsEffect(self.opacity_effect)
+        
+        self.fade_in = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_in.setDuration(200)
+        self.fade_in.setStartValue(0.0)
+        self.fade_in.setEndValue(1.0)
+        self.fade_in.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        
+        # Premium fade-out animation - silky smooth with subtle scale
+        self.fade_out = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_out.setDuration(500)  # Luxuriously smooth
+        self.fade_out.setStartValue(1.0)
+        self.fade_out.setEndValue(0.0)
+        self.fade_out.setEasingCurve(QtCore.QEasingCurve.InOutQuad)  # Premium easing
+        self.fade_out.finished.connect(lambda: super(NoFileLoadedDialog, self).accept())
+        
+        # Add subtle scale effect for premium feel (container widget)
+        self.scale_out = QtCore.QPropertyAnimation(self.container, b"geometry")
+        self.scale_out.setDuration(500)
+        self.scale_out.setEasingCurve(QtCore.QEasingCurve.InOutQuad)
+    
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.parent():
+            parent_rect = self.parent().geometry()
+            self.move(
+                parent_rect.center().x() - self.width() // 2,
+                parent_rect.center().y() - self.height() // 2
+            )
+        self.fade_in.start()
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.reject()
+        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self._on_load()
+        else:
+            super().keyPressEvent(event)
 
     def _drag_enter(self, event):
         """Accept .txt files"""
@@ -3094,6 +3494,27 @@ class NoFileLoadedDialog(QtWidgets.QDialog):
         """Export via SCEWIN requested"""
         self.export_requested.emit()
         # Don't close dialog yet - let export process handle it
+    
+    def close_with_fade(self):
+        """Close dialog with premium fade-out animation after a brief delay"""
+        def start_fade():
+            # Subtle scale down effect
+            current_geo = self.geometry()
+            target_geo = QtCore.QRect(
+                current_geo.x() + 10,
+                current_geo.y() + 10,
+                current_geo.width() - 20,
+                current_geo.height() - 20
+            )
+            self.scale_out.setStartValue(current_geo)
+            self.scale_out.setEndValue(target_geo)
+            self.scale_out.start()
+            
+            # Fade out simultaneously
+            self.fade_out.start()
+        
+        # Wait 600ms to let user see the success, then smoothly fade out
+        QtCore.QTimer.singleShot(600, start_fade)
 
 
 # --------------------------------------------------------------------------------------
@@ -3170,6 +3591,286 @@ class DragDropOverlay(QtWidgets.QWidget):
 # --------------------------------------------------------------------------------------
 # Custom Dark Title Bar
 # --------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------
+# Custom Outline Confirmation Dialog
+# --------------------------------------------------------------------------------------
+class OutlineConfirmDialog(QtWidgets.QDialog):
+    """
+    Custom confirmation dialog with outline style
+    Replaces stock Windows message boxes
+    """
+    
+    def __init__(self, parent=None, title="Confirm", message="Are you sure?", 
+                 confirm_text="Confirm", cancel_text="Cancel"):
+        super().__init__(parent)
+        
+        # Frameless dialog
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        
+        # Main container
+        container = QtWidgets.QWidget()
+        container.setObjectName("dialogContainer")
+        container.setStyleSheet(f"""
+            QWidget#dialogContainer {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 12px;
+            }}
+        """)
+        
+        container_layout = QtWidgets.QVBoxLayout(self)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.addWidget(container)
+        
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(32, 28, 32, 28)
+        layout.setSpacing(20)
+        
+        # Title
+        title_label = QtWidgets.QLabel(title)
+        title_label.setStyleSheet(f"""
+            font-size: 18px; font-weight: 600; color: {THEME['text']}; background: transparent;
+        """)
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Message
+        message_label = QtWidgets.QLabel(message)
+        message_label.setStyleSheet(f"font-size: 14px; color: {THEME['muted']}; background: transparent;")
+        message_label.setAlignment(Qt.AlignCenter)
+        message_label.setWordWrap(True)
+        layout.addWidget(message_label)
+        
+        # Buttons
+        button_row = QtWidgets.QHBoxLayout()
+        button_row.setSpacing(12)
+        button_row.addStretch()
+        
+        self.cancel_btn = QtWidgets.QPushButton(cancel_text)
+        self.cancel_btn.setMinimumWidth(100)
+        self.cancel_btn.setMinimumHeight(36)
+        self.cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; border: 1px solid {THEME['input_border']};
+                border-radius: 10px; padding: 8px 20px; color: {THEME['text']}; font-size: 14px;
+            }}
+            QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
+            QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
+        """)
+        self.cancel_btn.clicked.connect(self.reject)
+        self.cancel_btn.setCursor(Qt.PointingHandCursor)
+        button_row.addWidget(self.cancel_btn)
+        
+        self.confirm_btn = QtWidgets.QPushButton(confirm_text)
+        self.confirm_btn.setMinimumWidth(100)
+        self.confirm_btn.setMinimumHeight(36)
+        self.confirm_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; border: 1.5px solid {THEME['accent']};
+                border-radius: 10px; padding: 8px 20px; color: {THEME['text']}; 
+                font-size: 14px; font-weight: 500;
+            }}
+            QPushButton:hover {{ background: transparent; border-color: {THEME['accent_hover']}; }}
+            QPushButton:pressed {{ background: rgba(74, 144, 226, 38); border-color: {THEME['accent']}; }}
+        """)
+        self.confirm_btn.clicked.connect(self.accept)
+        self.confirm_btn.setCursor(Qt.PointingHandCursor)
+        self.confirm_btn.setDefault(True)
+        button_row.addWidget(self.confirm_btn)
+        
+        button_row.addStretch()
+        layout.addLayout(button_row)
+        
+        self.setFixedWidth(440)
+        
+        # Fade-in animation
+        self.opacity_effect = QtWidgets.QGraphicsOpacityEffect()
+        container.setGraphicsEffect(self.opacity_effect)
+        
+        self.fade_in = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_in.setDuration(200)
+        self.fade_in.setStartValue(0.0)
+        self.fade_in.setEndValue(1.0)
+        self.fade_in.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.parent():
+            parent_rect = self.parent().geometry()
+            self.move(
+                parent_rect.center().x() - self.width() // 2,
+                parent_rect.center().y() - self.height() // 2
+            )
+        self.fade_in.start()
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.reject()
+        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self.accept()
+        else:
+            super().keyPressEvent(event)
+    
+    @staticmethod
+    def confirm(parent, title, message, confirm_text="Confirm", cancel_text="Cancel"):
+        dialog = OutlineConfirmDialog(parent, title, message, confirm_text, cancel_text)
+        return dialog.exec() == QtWidgets.QDialog.Accepted
+
+
+# --------------------------------------------------------------------------------------
+# No File Loaded Dialog for Presets
+# --------------------------------------------------------------------------------------
+class NoFileLoadedPresetDialog(QtWidgets.QDialog):
+    """Premium 'No File Loaded' dialog for preset operations"""
+    
+    load_file_requested = Signal()
+    export_requested = Signal()
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        # Frameless dialog
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        
+        # Main container
+        container = QtWidgets.QWidget()
+        container.setObjectName("dialogContainer")
+        container.setStyleSheet(f"""
+            QWidget#dialogContainer {{
+                background: {THEME['card']};
+                border: 1px solid {THEME['border']};
+                border-radius: 12px;
+            }}
+        """)
+        
+        container_layout = QtWidgets.QVBoxLayout(self)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.addWidget(container)
+        
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(32, 28, 32, 28)
+        layout.setSpacing(20)
+        
+        # Icon
+        icon_label = QtWidgets.QLabel("📄")
+        icon_label.setStyleSheet("font-size: 48px; background: transparent;")
+        icon_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(icon_label)
+        
+        # Title
+        title_label = QtWidgets.QLabel("No File Loaded")
+        title_label.setStyleSheet(f"""
+            font-size: 18px; font-weight: 600; color: {THEME['text']}; background: transparent;
+        """)
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Message
+        message_label = QtWidgets.QLabel("Load a BIOS configuration file to use presets")
+        message_label.setStyleSheet(f"font-size: 14px; color: {THEME['muted']}; background: transparent;")
+        message_label.setAlignment(Qt.AlignCenter)
+        message_label.setWordWrap(True)
+        layout.addWidget(message_label)
+        
+        # Buttons
+        button_row = QtWidgets.QHBoxLayout()
+        button_row.setSpacing(12)
+        
+        self.cancel_btn = QtWidgets.QPushButton("Cancel")
+        self.cancel_btn.setMinimumWidth(90)
+        self.cancel_btn.setMinimumHeight(36)
+        self.cancel_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; border: 1px solid {THEME['input_border']};
+                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
+            }}
+            QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
+            QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
+        """)
+        self.cancel_btn.clicked.connect(self.reject)
+        self.cancel_btn.setCursor(Qt.PointingHandCursor)
+        button_row.addWidget(self.cancel_btn)
+        
+        self.export_btn = QtWidgets.QPushButton("Export (SCEWIN)")
+        self.export_btn.setMinimumWidth(120)
+        self.export_btn.setMinimumHeight(36)
+        self.export_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; border: 1px solid {THEME['input_border']};
+                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; font-size: 14px;
+            }}
+            QPushButton:hover {{ background: transparent; border-color: {THEME['input_focus']}; }}
+            QPushButton:pressed {{ background: rgba(255, 255, 255, 25); border-color: {THEME['accent']}; }}
+        """)
+        self.export_btn.clicked.connect(self._on_export)
+        self.export_btn.setCursor(Qt.PointingHandCursor)
+        button_row.addWidget(self.export_btn)
+        
+        self.load_btn = QtWidgets.QPushButton("Load File")
+        self.load_btn.setMinimumWidth(90)
+        self.load_btn.setMinimumHeight(36)
+        self.load_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; border: 1.5px solid {THEME['accent']};
+                border-radius: 10px; padding: 8px 16px; color: {THEME['text']}; 
+                font-size: 14px; font-weight: 500;
+            }}
+            QPushButton:hover {{ background: transparent; border-color: {THEME['accent_hover']}; }}
+            QPushButton:pressed {{ background: rgba(74, 144, 226, 38); border-color: {THEME['accent']}; }}
+        """)
+        self.load_btn.clicked.connect(self._on_load)
+        self.load_btn.setCursor(Qt.PointingHandCursor)
+        self.load_btn.setDefault(True)
+        button_row.addWidget(self.load_btn)
+        
+        layout.addLayout(button_row)
+        
+        self.setFixedWidth(480)
+        
+        # Fade-in animation
+        self.opacity_effect = QtWidgets.QGraphicsOpacityEffect()
+        container.setGraphicsEffect(self.opacity_effect)
+        
+        self.fade_in = QtCore.QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.fade_in.setDuration(200)
+        self.fade_in.setStartValue(0.0)
+        self.fade_in.setEndValue(1.0)
+        self.fade_in.setEasingCurve(QtCore.QEasingCurve.OutCubic)
+        
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.parent():
+            parent_rect = self.parent().geometry()
+            self.move(
+                parent_rect.center().x() - self.width() // 2,
+                parent_rect.center().y() - self.height() // 2
+            )
+        self.fade_in.start()
+    
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.reject()
+        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self._on_load()
+        else:
+            super().keyPressEvent(event)
+    
+    def _on_load(self):
+        """Load file requested"""
+        self.load_file_requested.emit()
+        self.accept()
+    
+    def _on_export(self):
+        """Export via SCEWIN requested"""
+        self.export_requested.emit()
+        self.accept()  # Close dialog after triggering export
+
+
 class CustomTitleBar(QtWidgets.QWidget):
     """
     Custom dark title bar replacing default Windows title bar
@@ -3196,24 +3897,24 @@ class CustomTitleBar(QtWidgets.QWidget):
 
         layout.addStretch()
 
-        # Window control buttons - premium styling with 8px gaps
+        # Window control buttons - icon only, no borders, tint on hover
         btn_style_base = f"""
             QPushButton {{
                 background: transparent;
                 border: none;
                 border-radius: 6px;
                 padding: 0;
-                min-width: 40px;
-                max-width: 40px;
-                min-height: 32px;
-                max-height: 32px;
+                min-width: 34px;
+                max-width: 34px;
+                min-height: 28px;
+                max-height: 28px;
                 margin-right: 8px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.06);
+                background: rgba(255, 255, 255, 30);
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.10);
+                background: rgba(255, 255, 255, 56);
             }}
         """
 
@@ -3235,24 +3936,24 @@ class CustomTitleBar(QtWidgets.QWidget):
         self.max_btn.setCursor(Qt.PointingHandCursor)
         layout.addWidget(self.max_btn)
 
-        # Close button with premium SVG and red hover
+        # Close button - icon only, red tint on hover
         close_style = f"""
             QPushButton {{
                 background: transparent;
                 border: none;
                 border-radius: 6px;
                 padding: 0;
-                min-width: 40px;
-                max-width: 40px;
-                min-height: 32px;
-                max-height: 32px;
+                min-width: 34px;
+                max-width: 34px;
+                min-height: 28px;
+                max-height: 28px;
                 margin-right: 0px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 80, 80, 0.18);
+                background: rgba(255, 80, 80, 38);
             }}
             QPushButton:pressed {{
-                background: rgba(255, 60, 60, 0.25);
+                background: rgba(255, 80, 80, 63);
             }}
         """
         self.close_btn = QtWidgets.QPushButton()
@@ -3379,23 +4080,57 @@ class PresetRow(QtWidgets.QWidget):
 
     def __init__(self, name: str, on: bool = False, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setStyleSheet("background: transparent;")
         self.name = name
-        lay = QtWidgets.QHBoxLayout(self)
-        lay.setContentsMargins(10, 8, 10, 8)
-        lay.setSpacing(8)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setFocusPolicy(Qt.NoFocus)
+        
+        # Main vertical layout for row + separator
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Container for the actual content
+        content_widget = QtWidgets.QWidget()
+        content_widget.setStyleSheet("""
+            QWidget {
+                background: transparent;
+                border: none;
+                outline: none;
+            }
+        """)
+        
+        lay = QtWidgets.QHBoxLayout(content_widget)
+        lay.setContentsMargins(0, 14, 0, 14)
+        lay.setSpacing(16)
 
         self.lbl = QtWidgets.QLabel(name)
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px; font-weight: 400; letter-spacing: 0.1px; background: transparent; border: none; outline: none;")
+        self.lbl.setFocusPolicy(Qt.NoFocus)
 
         self.sw = ToggleSwitch(self)
         self.sw.setChecked(on)
+        self.sw.setFocusPolicy(Qt.NoFocus)
         # precise binding
         self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
 
         lay.addWidget(self.lbl, 1)
         lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
+        
+        # Add subtle separator line with gradient effect (very subtle)
+        separator = QtWidgets.QFrame()
+        separator.setFrameShape(QtWidgets.QFrame.HLine)
+        separator.setFixedHeight(1)
+        separator.setStyleSheet(f"""
+            QFrame {{
+                background: {THEME['grid']};
+                border: none;
+                margin: 0px;
+            }}
+        """)
+        
+        main_layout.addWidget(content_widget)
+        main_layout.addWidget(separator)
 
 
 # --------------------------------------------------------------------------------------
@@ -3468,7 +4203,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.setAcceptDrops(True)
 
         # Initialize notification system
-        self.notifications = NotificationManager(self)
+        self.notifications = NotificationSystem(self)
 
         # Initialize SCEWIN runner
         self.scewin_runner = ScewinRunner(self)
@@ -3489,8 +4224,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         main_container.setStyleSheet(f"""
             QWidget#mainContainer {{
                 background: {THEME['bg']};
-                border-radius: 12px;
-                border: 1px solid {THEME['input_border']};
+                border-radius: 14px;
+                border: 1px solid {THEME['border']};
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
             }}
         """)
 
@@ -3516,8 +4252,8 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.setStyleSheet(self._stylesheet())
 
         root = QtWidgets.QVBoxLayout(content_widget)
-        root.setContentsMargins(24, 20, 24, 20)  # Premium spacing
-        root.setSpacing(18)  # Better visual hierarchy
+        root.setContentsMargins(20, 16, 20, 16)  # Premium spacing
+        root.setSpacing(16)  # Balanced spacing
 
         # Header - completely transparent, no background
         header = QtWidgets.QWidget()
@@ -3533,8 +4269,8 @@ class AutoBiosWindow(QtWidgets.QWidget):
         header.setPalette(pal)
 
         hv = QtWidgets.QVBoxLayout(header)
-        hv.setContentsMargins(20, 14, 20, 14)  # Premium header spacing
-        hv.setSpacing(14)  # Better spacing
+        hv.setContentsMargins(16, 12, 16, 12)  # Premium header spacing
+        hv.setSpacing(12)  # Balanced spacing
 
         top_row = QtWidgets.QHBoxLayout()
         top_row.setContentsMargins(0, 0, 0, 0)
@@ -3633,23 +4369,21 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         vh = self.table.verticalHeader()
         vh.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
-        vh.setDefaultSectionSize(32)
+        vh.setDefaultSectionSize(44)  # Apple-like generous row height
         self.table.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.table.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.table.setViewportMargins(0, 0, 0, 16)  # Increased bottom margin
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table.setAlternatingRowColors(False)
+        self.table.setAlternatingRowColors(False)  # Keep disabled for clean modern look
         self.table.setEditTriggers(
             QtWidgets.QAbstractItemView.SelectedClicked | QtWidgets.QAbstractItemView.EditKeyPressed
         )
-
-        # Performance optimizations for table rendering
-        self.table.viewport().setAttribute(Qt.WA_StaticContents)  # Reduce repaints
-        self.table.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)  # Smooth scrolling
-        self.table.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)  # Smooth scrolling
-        self.table.setAlternatingRowColors(False)  # Disable alternating colors for performance
         self.table.clicked.connect(self._force_edit_col1)
+        
+        # CRITICAL: Disable all UI updates during editing for instant response
+        self.table.setUpdatesEnabled(True)
+        self.table.viewport().setUpdatesEnabled(True)
         v.addWidget(self.table, 1)
 
         self.empty_main = QtWidgets.QLabel("Load a file to see settings.", alignment=Qt.AlignCenter, objectName="placeholder")
@@ -3731,21 +4465,38 @@ class AutoBiosWindow(QtWidgets.QWidget):
         right_wrap = QtWidgets.QFrame(objectName="sideCard")
         right_wrap.setStyleSheet("background: transparent;")
         rw = QtWidgets.QVBoxLayout(right_wrap)
-        rw.setContentsMargins(14, 14, 14, 14)
+        rw.setContentsMargins(16, 16, 16, 16)
         rw.setSpacing(12)
 
-        lbl = QtWidgets.QLabel("Preset tools")
+        # Ultra-premium "Preset tools" header
+        lbl = QtWidgets.QLabel("PRESETS")
+        lbl.setStyleSheet(f"""
+            color: {THEME['text_muted']}; 
+            font-size: 9px; 
+            font-weight: 700; 
+            letter-spacing: 1.8px;
+            background: transparent;
+            text-transform: uppercase;
+            padding: 0px 0px 12px 0px;
+        """)
 
-        # Family switch row (no errors on toggle)
+        # Family switch row
         self.familySwitch = ToggleSwitch()
         self.familySwitch.setObjectName("familySwitch")
         self.familySwitch.setChecked(False)  # Intel default
         self.familyLabel = QtWidgets.QLabel("Intel", objectName="familyLabel")
         self.familyLabel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.familyLabel.setStyleSheet(f"""
+            color: {THEME['text']}; 
+            font-size: 14px; 
+            font-weight: 600; 
+            background: transparent;
+            min-width: 50px;
+        """)
 
         topCenter = QtWidgets.QHBoxLayout()
         topCenter.setContentsMargins(0, 0, 0, 0)
-        topCenter.setSpacing(10)
+        topCenter.setSpacing(12)
         topCenter.addStretch(1)
         topCenter.addWidget(self.familySwitch, 0, Qt.AlignVCenter)
         topCenter.addWidget(self.familyLabel, 0, Qt.AlignVCenter)
@@ -3754,11 +4505,6 @@ class AutoBiosWindow(QtWidgets.QWidget):
         centerRow.setLayout(topCenter)
         centerRow.setAttribute(Qt.WA_TranslucentBackground, True)
         centerRow.setStyleSheet("background: transparent; border: none;")
-
-        # Clear list (first)
-        self.btn_clear = QtWidgets.QPushButton("Clear list")
-        self.btn_clear.setMinimumHeight(40)
-
         # Scroll area for page content (only scrolls when needed!)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -3787,26 +4533,32 @@ class AutoBiosWindow(QtWidgets.QWidget):
         # Page: BASIC
         vb = QtWidgets.QVBoxLayout(self._page_basic)
         vb.setContentsMargins(0, 0, 0, 0)
-        vb.setSpacing(8)
+        vb.setSpacing(4)
         vb.setAlignment(Qt.AlignTop)  # Align items to top
         self.rows_basic: Dict[str, PresetRow] = {}
         for name in PRESET_ORDER_BASIC:
             r = PresetRow(name, on=False)
             r.toggled.connect(lambda _name, state, n=name: self._on_preset_toggle_basic(n, state))
             self.rows_basic[name] = r
-            vb.addWidget(r, 0, Qt.AlignTop)  # Align each widget to top
+            vb.addWidget(r)
 
         # Page: ADVANCED (only active family shown)
         self.adv_container = QtWidgets.QWidget()
         self.adv_container.setStyleSheet("background: transparent;")
         self.adv_layout = QtWidgets.QVBoxLayout(self.adv_container)
         self.adv_layout.setContentsMargins(0, 0, 0, 0)
-        self.adv_layout.setSpacing(8)
+        self.adv_layout.setSpacing(4)
         self.adv_layout.setAlignment(Qt.AlignTop)  # Align to top
         self.rows_adv_intel: Dict[str, PresetRow] = {}
         self.rows_adv_amd: Dict[str, PresetRow] = {}
-        self._enabled_adv_intel = {}
-        self._enabled_adv_amd = {}
+        
+        # State - must initialize BEFORE building pages
+        self._preset_family = "intel"
+        self._enabled_basic: Dict[str, bool] = {k: False for k in PRESET_ORDER_BASIC}
+        self._enabled_adv_intel: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_INTEL}
+        self._enabled_adv_amd: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_AMD}
+        
+        # NOW build the initial advanced page
         self._build_adv_page_for_family("intel")  # initial build
 
         av = QtWidgets.QVBoxLayout(self._page_adv)
@@ -3820,47 +4572,43 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         sc_lo.addWidget(self.pages)
         self.scroll.setWidget(self.scrollContent)
-
-
-
-
-
-        # State
-        self._preset_family = "intel"
-        self._enabled_basic: Dict[str, bool] = {k: False for k in PRESET_ORDER_BASIC}
-        self._enabled_adv_intel: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_INTEL}
-        self._enabled_adv_amd: Dict[str, bool] = {k: False for k in PRESET_ORDER_ADV_AMD}
         self.pending_targets: Dict[int, Any] = {}
         self.current_path: Optional[Path] = None
         self.file_loaded: bool = False  # Track if file is loaded for Advanced page gating
 
         # Wire up
-        self.familySwitch.toggled.connect(self._on_family_switch)
-        self.btn_clear.clicked.connect(self.clear_preset_list)
-
-        # Layout right
+        self.familySwitch.toggled.connect(self._on_family_switch)        # Layout right panel
         rw.addWidget(lbl)
+        rw.addSpacing(8)
         rw.addWidget(centerRow, 0, Qt.AlignHCenter)
-        rw.addWidget(self.btn_clear)
+        rw.addSpacing(12)
         rw.addWidget(self.scroll, 1)
+        rw.addSpacing(12)
 
-        # New Page Navigation with Arrows
+        # Page Navigation
         nav_widget = QtWidgets.QWidget(objectName="presetNav")
         nav_layout = QtWidgets.QHBoxLayout(nav_widget)
         nav_layout.setContentsMargins(0, 0, 0, 0)
         nav_layout.setSpacing(16)
         nav_layout.setAlignment(Qt.AlignCenter)
 
-        self.btn_page_left = QtWidgets.QPushButton("<")
+        self.btn_page_left = QtWidgets.QPushButton("‹")
         self.btn_page_left.setObjectName("presetNavButton")
         self.btn_page_left.setCursor(Qt.PointingHandCursor)
+        self.btn_page_left.setFixedSize(36, 36)
+        self.btn_page_left.setFocusPolicy(Qt.NoFocus)
 
         self.lbl_page_title = QtWidgets.QLabel()
         self.lbl_page_title.setObjectName("presetPageTitle")
+        self.lbl_page_title.setStyleSheet(f"color: {THEME['text']}; font-size: 14px; font-weight: 600; min-width: 120px;")
+        self.lbl_page_title.setAlignment(Qt.AlignCenter)
+        self.lbl_page_title.setFocusPolicy(Qt.NoFocus)
 
-        self.btn_page_right = QtWidgets.QPushButton(">")
+        self.btn_page_right = QtWidgets.QPushButton("›")
         self.btn_page_right.setObjectName("presetNavButton")
         self.btn_page_right.setCursor(Qt.PointingHandCursor)
+        self.btn_page_right.setFixedSize(36, 36)
+        self.btn_page_right.setFocusPolicy(Qt.NoFocus)
 
         nav_layout.addWidget(self.btn_page_left)
         nav_layout.addWidget(self.lbl_page_title)
@@ -3889,10 +4637,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.tabs.currentChanged.connect(self.topTabs.setCurrentIndex)
         self.topTabs.setCurrentIndex(0)
 
-        # Footer
+        # Footer - Ultra-Premium Layout
         footer = QtWidgets.QHBoxLayout()
         footer.setContentsMargins(0, 0, 0, 0)
-        footer.setSpacing(12)
+        footer.setSpacing(10)
 
         self.status_label = QtWidgets.QLabel("Ready. Drag & drop nvram.txt files here to load.")
         footer.addWidget(self.status_label)
@@ -3919,6 +4667,10 @@ class AutoBiosWindow(QtWidgets.QWidget):
             footer.addWidget(b)
 
         root.addLayout(footer)
+
+        # Brand new premium notification system (MUST be before autoload)
+        self.toast = NotificationSystem(self)
+        self.notifications = self.toast  # Alias for compatibility
 
         # Autoload and columns
         self.try_autoload()
@@ -3953,7 +4705,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.loading_overlay.setStyleSheet(f"""
             QWidget {{
                 background: rgba(10, 14, 19, 200);
-                border-radius: 12px;
+                border-radius: 10px;
             }}
         """)
         self.loading_overlay.hide()
@@ -3991,16 +4743,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.loading_overlay.setGeometry(24, 20, self.width() - 48, self.height() - 40)
 
     def _init_fade_in_animation(self) -> None:
-        """Premium fade-in animation for polished startup."""
+        """Ultra-smooth 240fps fade-in animation for premium startup experience."""
         opacity_effect = QtWidgets.QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(opacity_effect)
 
         self._startup_fade = QtCore.QPropertyAnimation(opacity_effect, b"opacity")
-        self._startup_fade.setDuration(300)
+        self._startup_fade.setDuration(280)  # Ultra-responsive
         self._startup_fade.setStartValue(0.0)
         self._startup_fade.setEndValue(1.0)
-        self._startup_fade.setEasingCurve(QtCore.QEasingCurve.OutCubic)
-        QtCore.QTimer.singleShot(0, self._startup_fade.start)
+        self._startup_fade.setEasingCurve(QtCore.QEasingCurve.OutExpo)  # Exponential for buttery smoothness
+        
+        # Cleanup effect after animation for optimal performance
+        self._startup_fade.finished.connect(lambda: self.setGraphicsEffect(None))
+        
+        QtCore.QTimer.singleShot(5, self._startup_fade.start)
 
     def show_loading(self, text: str = "Processing...", show_progress: bool = False) -> None:
         """Show loading overlay with optional progress bar"""
@@ -4048,11 +4804,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
             
             # Update title and button enabled states
             if index == 0:
-                self.lbl_page_title.setText("Basic Presets")
+                self.lbl_page_title.setText("Basic Tuning")
                 self.btn_page_left.setEnabled(False)
                 self.btn_page_right.setEnabled(True)
             else:  # index == 1
-                self.lbl_page_title.setText("Advanced Presets")
+                # Show current CPU family on Advanced page
+                family_name = "Intel" if self._preset_family == "intel" else "AMD"
+                self.lbl_page_title.setText(f"{family_name} Advanced")
                 self.btn_page_left.setEnabled(True)
                 self.btn_page_right.setEnabled(False)
 
@@ -4063,20 +4821,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
         scrollbars = f"""
         QScrollBar:vertical {{
             background: transparent;
-            width: 14px;
-            margin: 2px;
+            width: 8px;
+            margin: 0px;
         }}
         QScrollBar::handle:vertical {{
-            background: {THEME['input_border']};
-            min-height: 80px;
-            border-radius: 7px;
+            background: {THEME['border_subtle']};
+            min-height: 40px;
+            border-radius: 6px;
             margin: 2px;
         }}
         QScrollBar::handle:vertical:hover {{
-            background: {THEME['input_focus']};
+            background: {THEME['accent']};
         }}
         QScrollBar::handle:vertical:pressed {{
-            background: {THEME['accent']};
+            background: {THEME['accent_dim']};
         }}
         QScrollBar::sub-line:vertical, QScrollBar::add-line:vertical {{
             border: none;
@@ -4089,20 +4847,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         QScrollBar:horizontal {{
             background: transparent;
-            height: 14px;
-            margin: 2px;
+            height: 8px;
+            margin: 0px;
         }}
         QScrollBar::handle:horizontal {{
-            background: {THEME['input_border']};
-            min-width: 80px;
-            border-radius: 7px;
+            background: {THEME['border_subtle']};
+            min-width: 40px;
+            border-radius: 6px;
             margin: 2px;
         }}
         QScrollBar::handle:horizontal:hover {{
-            background: {THEME['input_focus']};
+            background: {THEME['accent']};
         }}
         QScrollBar::handle:horizontal:pressed {{
-            background: {THEME['accent']};
+            background: {THEME['accent_dim']};
         }}
         QScrollBar::sub-line:horizontal, QScrollBar::add-line:horizontal {{
             border: none;
@@ -4116,17 +4874,28 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         return (
             f"""
-            /* Global 12px rounded corners - single source of truth */
+            /* Global styles - Unified system */
             * {{
-                font-size: 14px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 13px;
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-weight: 400;
+                letter-spacing: 0.2px;
             }}
 
-            /* Core widgets with global radius */
+            /* Core widgets with global radius - Apple-style */
             QWidget, QFrame, QGroupBox, QTabWidget::pane, QTabBar::tab,
             QPushButton, QLineEdit, QComboBox, QListView, QTreeView, QTableView,
             QScrollArea, QToolButton, QMenu, QDialog, QStatusBar {{
-                border-radius: 12px;
+                border-radius: 10px;
+            }}
+            
+            /* Subtle shadows - Clean minimal */
+            QPushButton, QLineEdit, QFrame#sideOuter {{
+                box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.6);
+            }}
+            
+            QPushButton:hover, QLineEdit:focus {{
+                box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.7);
             }}
 
             QWidget {{ background-color: {t['bg']}; color: {t['text']}; }}
@@ -4136,98 +4905,195 @@ class AutoBiosWindow(QtWidgets.QWidget):
             QWidget#header {{ background:none !important; border:none !important; padding:2px; }}
             QWidget#header * {{ background:transparent !important;}}
             QLabel#title {{
-                font-size:24px;
-                font-weight:700;
+                font-size:22px;
+                font-weight:600;
                 color:{t['text']};
-                letter-spacing:-0.5px;
+                letter-spacing:-0.3px;
                 background:none !important;
                 border:none !important;
                 padding:0px !important;
                 margin:0px !important;
             }}
-            QLabel#counts {{ color:{t['muted']}; font-size:13px; }}
+            QLabel#counts {{ 
+                color:{t['text_secondary']}; 
+                font-size:11px; 
+                font-weight:400;
+                letter-spacing:0.3px;
+            }}
 
-            /* Top tabs with hover */
+            /* Top tabs - Clear with thin borders */
             QTabBar#topTabs {{ qproperty-drawBase:0; background:transparent; }}
-            QTabBar#topTabs::tab {{ background:{t['card']}; color:{t['muted']}; padding:14px 24px; margin:0 8px;
-                                     border:1px solid {t['border']}; border-radius:12px; font-weight:500; font-size:14px; }}
-            QTabBar#topTabs::tab:hover {{ background:{t['card_hover']}; border-color:{t['input_border']}; }}
-            QTabBar#topTabs::tab:selected {{ background:{t['tab_selected']}; color:{t['text']}; border-color:{t['input_focus']};d}}
-
-            /* Search input with visible color block */
-            QLineEdit, QLineEdit#searchInput {{
-                background: {t['card']};
-                border: 2px solid {t['input_border']};
-                border-radius: 12px;
-                padding: 12px 18px;
+            QTabBar#topTabs::tab {{ 
+                background: transparent; 
+                color: {t['text_secondary']}; 
+                padding: 10px 22px; 
+                margin: 0 4px;
+                border: 1px solid {t['border']}; 
+                border-radius: 12px; 
+                font-weight: 500; 
+                font-size: 13px; 
+                letter-spacing: 0.2px;
+            }}
+            QTabBar#topTabs::tab:hover {{ 
+                border-color: {t['accent']}; 
                 color: {t['text']};
-                font-size: 14px;
+            }}
+            QTabBar#topTabs::tab:selected {{ 
+                background: transparent; 
+                color: {t['accent']}; 
+                border: 1px solid {t['accent']};
+                font-weight: 600;
+            }}
+
+            /* Search input - Rounded, line only */
+            QLineEdit, QLineEdit#searchInput {{
+                background: transparent;
+                border: 1px solid {t['border']};
+                border-radius: 12px;
+                padding: 10px 16px;
+                color: {t['text']};
+                font-size: 13px;
+                font-weight: 400;
+                letter-spacing: 0.2px;
                 selection-background-color: {t['selection']};
+                outline: none;
             }}
             QLineEdit:hover, QLineEdit#searchInput:hover {{
-                border-color: {t['input_focus']};
-                background: {t['card_hover']};
+                border-color: {t['border_subtle']};
+                outline: none;
             }}
             QLineEdit:focus, QLineEdit#searchInput:focus {{
-                border: 2px solid {t['input_focus']};
-                background: {t['card_hover']};
+                border: 1px solid {t['accent']};
+                outline: none;
             }}
 
-            /* Tables with hover effects */
+            /* Tables - Ultra-premium Apple quality */
             QTableView#cardTable {{
-                background:{t['bg']};
-                border:1px solid {t['border']};
-                border-radius:12px;
-                selection-background-color:{t['selection']};
-                outline:0;
-                padding:0px 0px 8px 0px;
+                background: transparent;
+                border: none;
+                border-radius: 0px;
+                selection-background-color: transparent;
+                selection-color: {t['text']};
+                gridline-color: transparent;
+                padding: 0px;
+                outline: none;
+                show-decoration-selected: 0;
+                alternate-background-color: transparent;
             }}
             QTableView#cardTable::item {{
-                padding:8px;
-                border:0;
-                border-bottom:1px solid {t['grid']};
-                margin:0px;
+                padding: 14px 18px;
+                border: 0;
+                border-bottom: 1px solid {t['grid']};
+                margin: 0px;
+                outline: none;
+                color: {t['text']};
+                font-size: 13px;
+                font-weight: 400;
+                letter-spacing: 0.1px;
             }}
-            QTableView#cardTable::item:hover {{ background:{t['card_hover']}; }}
+            QTableView#cardTable::item:selected {{
+                background: {t['selection']};
+                color: {t['text']};
+                outline: none;
+            }}
+            QTableView#cardTable::item:hover {{ 
+                background: {t['surface']};
+            }}
+            QTableView#cardTable::item:focus {{
+                outline: none;
+                border: none;
+            }}
 
-            QHeaderView::section {{ background:{t['card']}; color:{t['muted']}; border:0; border-right:1px solid {t['border']};
-                                     padding:14px; font-weight:600; text-transform:uppercase; font-size:12px; letter-spacing:0.5px; }}
-            QHeaderView::section:hover {{ background:{t['card_hover']}; }}
-            QHeaderView::section:first {{ border-top-left-radius:12px; }}
-            QHeaderView::section:last {{ border-top-right-radius:12px; border-right:0; }}
-            QTableCornerButton::section {{ background:{t['card']}; border:0; border-top-left-radius:12px; }}
+            QHeaderView::section {{ 
+                background: transparent; 
+                color: {t['text_muted']}; 
+                border: 0; 
+                border-right: none;
+                border-bottom: 1px solid {t['grid']};
+                padding: 10px 18px 8px 18px; 
+                font-weight: 600; 
+                text-transform: uppercase; 
+                font-size: 9px; 
+                letter-spacing: 1.2px;
+            }}
+            QHeaderView::section:hover {{ 
+                color: {t['text_secondary']};
+            }}
+            QHeaderView::section:first {{ border-top-left-radius: 0px; }}
+            QHeaderView::section:last {{ border-top-right-radius: 0px; border-right: 0; }}
+            QTableCornerButton::section {{ 
+                background: transparent; 
+                border: 0; 
+                border-top-left-radius: 0px;
+            }}
 
-            /* Preset table */
+            /* Preset table - Apple quality */
             QTableView#presetListTable {{
-                background:{t['bg']};
-                border:1px solid {t['border']};
-                border-radius:12px;
-                selection-background-color:{t['selection']};
-                outline:0;
-                padding:0px 0px 8px 0px;
+                background: transparent;
+                border: none;
+                selection-background-color: {t['selection']};
+                padding: 0px;
+                outline: none;
             }}
             QTableView#presetListTable::item {{
-                padding:8px;
-                border:0;
-                border-bottom:1px solid {t['grid']};
-                margin:0px;
+                padding: 14px 0px;
+                border: 0;
+                border-bottom: 1px solid {t['grid']};
+                margin: 0px;
+                color: {t['text']};
+                font-size: 13px;
+                font-weight: 400;
+                letter-spacing: 0.1px;
             }}
-            QTableView#presetListTable::item:hover {{ background:{t['card_hover']}; }}
+            QTableView#presetListTable::item:selected {{
+                background: {t['selection']};
+            }}
+            QTableView#presetListTable::item:hover {{ 
+                background: {t['surface']};
+            }}
 
-            /* Side panel - fully separated */
+            /* Side panel - Clean Apple style */
             QFrame#sideOuter {{
-                background:{t['card']};
-                border:1px solid {t['border']};
-                border-radius:18px;
+                background: {t['card']};
+                border: 1px solid {t['border']};
+                border-radius: 12px;
             }}
-            QFrame#sideCard {{ background:transparent; border:0; }}
+            QFrame#sideCard {{ 
+                background: transparent; 
+                border: none; 
+            }}
 
-            /* Buttons with smooth effects */
-            QPushButton {{ background:{t['tab_selected']}; border:1px solid {t['input_border']}; border-radius:16px;
-                           padding:12px 24px; color:{t['text']}; font-weight:500; }}
-            QPushButton:hover {{ background:{t['card_hover']}; border-color:{t['input_focus']}; }}
-            QPushButton:pressed {{ background:{t['card']}; border-color:{t['accent']}; }}
-            QPushButton:disabled {{ background:{t['card']}; color:{t['muted']}; border-color:{t['border']}; }}
+            /* Buttons - Rounded, line only */
+            QPushButton {{ 
+                background: transparent; 
+                border: 1px solid {t['border']}; 
+                border-radius: 12px;
+                padding: 10px 20px; 
+                color: {t['text']}; 
+                font-weight: 500;
+                font-size: 13px;
+                letter-spacing: 0.2px;
+                outline: none;
+            }}
+            QPushButton:hover {{ 
+                border-color: {t['accent']}; 
+                color: {t['accent']};
+            }}
+            QPushButton:pressed {{ 
+                border-color: {t['accent']};
+                color: {t['accent']};
+                outline: none;
+            }}
+            QPushButton:disabled {{ 
+                background: transparent; 
+                color: {t['text_muted']}; 
+                border-color: {t['border']}; 
+                opacity: 0.5;
+            }}
+            QPushButton:focus {{ 
+                outline: none;
+                border: 1px solid {t['accent']};
+            }}
 
             /* Placeholder */
             QLabel#placeholder {{ color:{t['muted']}; font-size:15px; }}
@@ -4235,37 +5101,42 @@ class AutoBiosWindow(QtWidgets.QWidget):
             ToggleSwitch, ToggleSwitch * {{ background: transparent; border: 0; }}
             {scrollbars}
 
-            /* Preset Page Navigation Arrows */
-            QWidget#presetNav {{ background: transparent; }}
-            QLabel#presetPageTitle {{
-                font-size: 14px;
-                font-weight: 600;
-                color: {{t['text']}};
-                background: transparent;
+            /* Navigation Buttons - Clean */
+            QWidget#presetNav {{ 
+                background: transparent; 
+                border: none;
             }}
+            
             QPushButton#presetNavButton {{
                 background: transparent;
-                color: {{t['muted']}};
-                border: 1px solid {{t['border']}};
-                font-size: 16px;
-                font-weight: bold;
+                color: {t['text']};
+                border: none;
+                outline: none;
+                font-size: 20px;
                 min-width: 36px;
                 max-width: 36px;
                 min-height: 36px;
                 max-height: 36px;
-                border-radius: 18px; /* Makes it a circle */
+                border-radius: 18px;
+                padding: 0px;
             }}
             QPushButton#presetNavButton:hover {{
-                background: {{t['card_hover']}};
-                color: {{t['accent_hover']}}; /* This is the blue hover color */
-                border-color: {{t['accent']}};
+                background: {t['card_hover']};
+                color: {t['accent']};
+                outline: none;
             }}
             QPushButton#presetNavButton:pressed {{
-                background: {{t['card']}};
+                background: {t['card_hover']};
+                color: {t['accent']};
+                outline: none;
             }}
             QPushButton#presetNavButton:disabled {{
-                color: {{t['border']}};
                 background: transparent;
+                color: {t['border']};
+                outline: none;
+            }}
+            QPushButton#presetNavButton:focus {{
+                outline: none;
             }}
             """
         )
@@ -4284,9 +5155,12 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.table.edit(idx)
 
     def _require_file_loaded(self) -> bool:
-        """Check if file is loaded, show dialog if not"""
+        """Check if file is loaded, show premium dialog if not"""
         if not self.file_loaded:
-            self._show_no_file_dialog()
+            dialog = NoFileLoadedPresetDialog(self)
+            dialog.load_file_requested.connect(self.load_file)
+            dialog.export_requested.connect(self.export_scewin)
+            dialog.exec()
             return False
         return True
 
@@ -4326,7 +5200,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4347,15 +5221,23 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
     def import_scewin(self) -> None:
         """
-        Professional SCEWIN import with QProcess
-        - Non-blocking execution
-        - Progress feedback
-        - Comprehensive error handling
-        - Creates nvram_tuned.txt file before importing
+        Professional SCEWIN import with QProcess with custom confirmation
         """
         # Check if file is loaded
         if not self.current_path or not self.current_path.exists():
             self._show_no_file_dialog()
+            return
+        
+        # Show custom confirmation modal
+        confirmed = OutlineConfirmDialog.confirm(
+            self,
+            "Confirm BIOS Import",
+            "Import settings to BIOS using SCEWIN?\n\nThis will modify your BIOS configuration.\nMake sure you have a backup.",
+            "Import",
+            "Cancel"
+        )
+        
+        if not confirmed:
             return
 
         # Locate SCEWIN executable
@@ -4366,7 +5248,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4375,7 +5257,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
         rows = self.model.modified_rows()
         if not rows:
             self.status("No changes to import.")
-            self.notifications.notify_info("No changes to import", duration_ms=2500)
+            self.toast.info("No changes to import")
             return
             
         nvram_tuned_path = exe.parent / "nvram_tuned.txt"
@@ -4399,21 +5281,14 @@ class AutoBiosWindow(QtWidgets.QWidget):
             logging.info(f"Created nvram_tuned.txt at: {nvram_tuned_path} with {len(rows)} modified settings")
         except Exception as e:
             logging.error(f"Failed to create nvram_tuned.txt: {e}")
-            self.notifications.notify_error(f"Failed to create nvram_tuned.txt: {e}")
+            self.toast.error(f"Failed to create nvram_tuned.txt: {e}")
             return
 
-        # Confirmation dialog (safety)
-        reply = QtWidgets.QMessageBox.question(
-            self, "Confirm BIOS Import",
-            f"Import settings from:\n{self.current_path.name}\n\nThis will modify your BIOS settings. Continue?",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-            QtWidgets.QMessageBox.No
-        )
-        if reply != QtWidgets.QMessageBox.Yes:
-            self.status("Import cancelled.")
-            return
-
-        # Disable import button and show progress
+        # Show Apple-style import progress dialog
+        self._import_dialog = AppleImportDialog(self)
+        self._import_dialog.set_importing(f"Applying {len(rows)} BIOS settings...")
+        
+        # Disable import button
         self.btn_import.setEnabled(False)
         self.btn_import.setText("Importing...")
         self._current_scewin_operation = "import"
@@ -4422,6 +5297,9 @@ class AutoBiosWindow(QtWidgets.QWidget):
         logging.info(f"Starting import: {nvram_tuned_path}")
         self.scewin_runner.run_import(nvram_tuned_path, exe)
         self.status(f"Importing {self.current_path.name} to BIOS...")
+        
+        # Show the dialog
+        self._import_dialog.show()
 
     def export_scewin(self) -> None:
         """
@@ -4438,7 +5316,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 "Executable (SCEWIN_64.exe);;All files (*.*)"
             )
             if not path:
-                self.notifications.notify_error("SCEWIN_64.exe not found")
+                self.toast.error("SCEWIN_64.exe not found")
                 return
             exe = Path(path)
 
@@ -4471,18 +5349,18 @@ class AutoBiosWindow(QtWidgets.QWidget):
         if result.success:
             if operation == "import":
                 self.status("Import successful!")
-                self.notifications.notify_success("BIOS settings imported successfully")
                 logging.info("Import completed successfully")
+                
+                # Update dialog to show success
+                if hasattr(self, '_import_dialog') and self._import_dialog.isVisible():
+                    self._import_dialog.set_success("BIOS settings applied successfully!")
 
             elif operation == "export":
                 self.status("Export successful!")
                 exported_path = self._export_exe_path.parent / DEFAULT_NVRAM_NAME
 
-                # Success toast - compact, text only
-                self.notifications.notify_success(
-                    "Exported successfully",
-                    duration_ms=3000
-                )
+                # Success toast
+                self.toast.success("Export successful")
                 logging.info(f"Export completed: {exported_path}")
 
                 # Auto-load the exported file (without showing "Loaded" toast)
@@ -4505,16 +5383,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 self.status("Export successful!")
                 exported_path = self._export_exe_path.parent / DEFAULT_NVRAM_NAME
 
-                # Success toast - compact, text only
-                self.notifications.notify_success(
-                    "Exported successfully",
-                    duration_ms=3000
-                )
+                # Success toast
+                self.toast.success("Export successful")
                 logging.info(f"Export completed: {exported_path}")
 
-                # Close the dialog
+                # Close the dialog with premium fade-out animation
                 if hasattr(self, '_dialog_export_context'):
-                    self._dialog_export_context.accept()
+                    self._dialog_export_context.close_with_fade()
                     delattr(self, '_dialog_export_context')
 
                 # Auto-load the exported file (without showing "Loaded" toast)
@@ -4538,17 +5413,20 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
             if operation == "import":
                 self.status(f"Import failed: {error_msg}")
-                self.notifications.notify_error("Import failed", details=error_msg)
                 logging.error(f"Import failed: {error_msg}")
+                
+                # Update dialog to show error
+                if hasattr(self, '_import_dialog') and self._import_dialog.isVisible():
+                    self._import_dialog.set_error(f"Failed: {error_msg}")
 
             elif operation == "export":
                 self.status(f"Export failed: {error_msg}")
-                self.notifications.notify_error("Export failed", details=error_msg)
+                self.toast.error("Export failed")
                 logging.error(f"Export failed: {error_msg}")
 
             elif operation == "export_from_dialog":
                 self.status(f"Export failed: {error_msg}")
-                self.notifications.notify_error("Export failed", details=error_msg)
+                self.toast.error("Export failed")
                 logging.error(f"Export failed: {error_msg}")
 
                 # Re-enable dialog buttons on failure
@@ -4582,7 +5460,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
             self.tune_columns()
 
             # Show success toast
-            self.notifications.notify_success(f"Loaded {path.name}", duration_ms=2200)
+            self.toast.success(f"Loaded {path.name}")
         finally:
             self.table.setUpdatesEnabled(True)
 
@@ -4613,12 +5491,8 @@ class AutoBiosWindow(QtWidgets.QWidget):
         Path(save_path).write_text(content, encoding="utf-8")
         self.status(f"Saved: {Path(save_path).name} ({len(rows)} edited settings).")
 
-        # Show success toast with elided path
-        path_str = str(Path(save_path))
-        if len(path_str) > 50:
-            path_str = path_str[:25] + "..." + path_str[-22:]
-
-        self.notifications.notify_success(f"Saved file to {path_str}", duration_ms=2500)
+        # Show success toast
+        self.toast.success(f"Saved {len(rows)} changes")
 
     # -------- Presets logic --------
     def _current_basic_map(self) -> Dict[str, Dict[str, Any]]:
@@ -4630,27 +5504,53 @@ class AutoBiosWindow(QtWidgets.QWidget):
         return PRESET_ORDER_ADV_AMD, AMD_PRESETS_ADV, self._enabled_adv_amd
 
     def _build_adv_page_for_family(self, fam: str) -> None:
-        # clear layout
+        # STEP 1: Delete ALL existing widgets immediately
         while self.adv_layout.count():
             item = self.adv_layout.takeAt(0)
-            w = item.widget()
-            if w:
+            if item and item.widget():
+                w = item.widget()
                 w.setParent(None)
+                w.deleteLater()
 
+        # STEP 2: Create widgets for selected family
         if fam == "intel":
             self.rows_adv_intel = {}
-            for name in PRESET_ORDER_ADV_INTEL:
-                r = PresetRow(name, on=self._enabled_adv_intel.get(name, False))
-                r.toggled.connect(lambda _name, state, n=name: self._on_adv_specific_toggle("intel", n, state))
-                self.rows_adv_intel[name] = r
-                self.adv_layout.addWidget(r, 0, Qt.AlignTop)  # Align to top
-        else:
+            order = PRESET_ORDER_ADV_INTEL
+            enabled_dict = self._enabled_adv_intel
+        else:  # AMD
             self.rows_adv_amd = {}
-            for name in PRESET_ORDER_ADV_AMD:
-                r = PresetRow(name, on=self._enabled_adv_amd.get(name, False))
-                r.toggled.connect(lambda _name, state, n=name: self._on_adv_specific_toggle("amd", n, state))
-                self.rows_adv_amd[name] = r
-                self.adv_layout.addWidget(r, 0, Qt.AlignTop)  # Align to top
+            order = PRESET_ORDER_ADV_AMD
+            enabled_dict = self._enabled_adv_amd
+
+        # STEP 3: Create rows with proper signal binding
+        for idx, preset_name in enumerate(order):
+            is_enabled = enabled_dict.get(preset_name, False)
+            row = PresetRow(preset_name, on=is_enabled)
+            
+            # Use partial for bulletproof signal binding
+            callback = partial(self._handle_adv_preset_toggle, fam, preset_name)
+            row.toggled.connect(callback)
+            
+            # Store and add
+            if fam == "intel":
+                self.rows_adv_intel[preset_name] = row
+            else:
+                self.rows_adv_amd[preset_name] = row
+            
+            self.adv_layout.addWidget(row)
+            row.show()  # Explicitly show
+        
+        # STEP 4: Force layout and visual update
+        self.adv_layout.activate()
+        self.adv_container.updateGeometry()
+        self.adv_layout.update()
+        
+        # Debug logging
+        logging.info(f"Built {fam} advanced page with {len(order)} presets")
+    
+    def _handle_adv_preset_toggle(self, family: str, preset_name: str, signal_preset_name: str, enabled: bool):
+        """Handle advanced preset toggle with explicit parameters"""
+        self._on_adv_specific_toggle(family, preset_name, enabled)
 
     def _revert_row_switch(self, row: PresetRow, target_state: bool) -> None:
         row.sw.blockSignals(True)
@@ -4686,6 +5586,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
                 combined.update(basic_map.get(name, {}))
 
         order, adv_map, enabled_map = self._current_adv_map()
+        
+        # GUARD: Ensure correct family data is used
+        if self._preset_family == "amd":
+            assert adv_map is AMD_PRESETS_ADV, "AMD family must use AMD_PRESETS_ADV"
+        else:
+            assert adv_map is INTEL_PRESETS_ADV, "Intel family must use INTEL_PRESETS_ADV"
+        
         for name in order:
             if enabled_map.get(name):
                 combined.update(adv_map.get(name, {}))
@@ -4735,11 +5642,17 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.status("Preset list cleared.")
 
     def _on_family_switch(self, on: bool) -> None:
+        """Toggle between AMD and Intel presets"""
         fam = "amd" if on else "intel"
         self._preset_family = fam
         self.familyLabel.setText("AMD" if on else "Intel")
         self._build_adv_page_for_family(fam)
         self._rebuild_preset_view_and_targets()
+        # Update the page title to reflect the current family
+        self._update_preset_nav_ui()
+        # Show confirmation toast
+        cpu_name = "AMD" if on else "Intel"
+        self.toast.info(f"Switched to {cpu_name} presets")
 
     def _apply_targets_now(self) -> int:
         def _norm_label(x: str) -> str:
@@ -4866,41 +5779,75 @@ class AutoBiosWindow(QtWidgets.QWidget):
     # Note: show_glow_error replaced by NotificationManager.notify_error()
     # Kept for backward compatibility during transition
     def show_glow_error(self, title: str, text: str):
-        self.notifications.notify_error(text, details=title if title != text else None)
+        self.toast.error(text)
 
     def apply_config(self) -> None:
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
             return
+        
+        # Track which presets are being applied
+        active_presets = []
         if self.pending_targets:
+            # Get active basic presets
+            for name in PRESET_ORDER_BASIC:
+                if self._enabled_basic.get(name):
+                    active_presets.append(name)
+            
+            # Get active advanced presets
+            order, _, enabled_map = self._current_adv_map()
+            for name in order:
+                if enabled_map.get(name):
+                    family_label = "AMD" if self._preset_family == "amd" else "Intel"
+                    active_presets.append(f"{family_label} {name}")
+            
             ch = self._apply_targets_now()
             self.status(f"Preset staged {ch} change(s).")
+        
         cnt = self.model.apply_staged()
         self.update_counts()
-        self.status(f"Applied {cnt} change(s).")
-
-        # Show toast notification with change count
+        
+        # Enhanced status and notification
         if cnt == 0:
-            self.notifications.notify_info("No changes to apply", duration_ms=2500)
+            self.status("No changes to apply.")
+            self.toast.info("No changes to apply")
         else:
             change_word = "change" if cnt == 1 else "changes"
-            self.notifications.notify_success(f"Applied {cnt} {change_word}", duration_ms=2500)
+            
+            # Build status message with preset info
+            if active_presets:
+                preset_list = ", ".join(active_presets[:3])  # Show first 3
+                if len(active_presets) > 3:
+                    preset_list += f" +{len(active_presets) - 3} more"
+                self.status(f"Applied {cnt} {change_word}: {preset_list}")
+                self.toast.success(f"Applied {cnt} {change_word}")
+            else:
+                self.status(f"Applied {cnt} {change_word}.")
+                self.toast.success(f"Applied {cnt} {change_word}")
 
     def reset_config(self) -> None:
-        """Reset all changes back to original values"""
+        """Full app reset: settings, presets, search, filters, counters"""
         if self.model.rowCount() == 0:
             self._show_no_file_dialog()
             return
-            
-        # Get all modified rows and reset them to original values
-        modified_rows = self.model.modified_rows()
-        if not modified_rows:
-            self.notifications.notify_info("No changes to reset", duration_ms=2500)
+        
+        # Show custom confirmation modal
+        confirmed = OutlineConfirmDialog.confirm(
+            self,
+            "Reset All Settings",
+            "This will revert all settings, presets, and applied changes back to default.\n\nContinue?",
+            "Reset",
+            "Cancel"
+        )
+        
+        if not confirmed:
             return
-            
-        # Reset each modified setting to its original value
+        
+        # FULL RESET - same as app restart
+        
+        # 1. Reset all modified settings to original values
         reset_count = 0
-        for row in modified_rows:
+        for row in self.model.modified_rows():
             setting = self.model._rows[row]
             
             # Reset OPTIONS type settings to original index
@@ -4921,20 +5868,52 @@ class AutoBiosWindow(QtWidgets.QWidget):
         self.model._applied.clear()
         self.model._staged.clear()
         
-        # Clear any pending preset targets
+        # 2. Clear ALL presets (Basic + Advanced)
+        if hasattr(self, 'rows_basic'):
+            for row in self.rows_basic.values():
+                if row.sw.isChecked():
+                    row.sw.setChecked(False)
+        
+        if hasattr(self, '_enabled_basic'):
+            self._enabled_basic = {k: False for k in self._enabled_basic.keys()}
+        
+        if hasattr(self, '_enabled_adv_intel'):
+            self._enabled_adv_intel = {k: False for k in self._enabled_adv_intel.keys()}
+        
+        if hasattr(self, '_enabled_adv_amd'):
+            self._enabled_adv_amd = {k: False for k in self._enabled_adv_amd.keys()}
+        
+        # Rebuild advanced presets to reflect cleared state
+        if hasattr(self, '_build_adv_page_for_family') and hasattr(self, '_preset_family'):
+            self._build_adv_page_for_family(self._preset_family)
+        
+        # Clear preset targets and table
         if hasattr(self, 'pending_targets'):
             self.pending_targets.clear()
         
-        # Update the UI
+        if hasattr(self, 'presetProxy'):
+            self.presetProxy.setNameSet(None)
+        
+        if hasattr(self, 'presetTable'):
+            self.presetTable.setVisible(False)
+            self.presetTable.horizontalHeader().setVisible(False)
+        
+        if hasattr(self, 'preset_placeholder'):
+            self.preset_placeholder.setVisible(True)
+        
+        # 3. Clear search filter
+        if hasattr(self, 'search'):
+            self.search.clear()
+        
+        # 4. Update the UI
         self.update_counts()
-        self.status(f"Reset {reset_count} change(s) to original values.")
+        self.status(f"Full reset complete: {reset_count} settings restored, presets cleared, filters reset.")
         
         # Show success notification
         if reset_count > 0:
-            change_word = "change" if reset_count == 1 else "changes"
-            self.notifications.notify_success(f"Reset {reset_count} {change_word}", duration_ms=2500)
+            self.toast.success(f"Full reset: {reset_count} settings + all presets")
         else:
-            self.notifications.notify_info("No changes to reset", duration_ms=2500)
+            self.toast.info("Reset complete")
 
     def update_counts(self) -> None:
         edited, applied = self.model.get_counts()
@@ -5071,7 +6050,7 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         if not txt_files:
             self.status("Invalid file type.")
-            self.notifications.notify_error("Invalid file type. Please drop a .txt file.")
+            self.toast.error("Invalid file type. Please drop a .txt file.")
             return
 
         # Load the first .txt file
@@ -5082,13 +6061,13 @@ class AutoBiosWindow(QtWidgets.QWidget):
             try:
                 self.load_path(dropped_path)
                 # Success toast
-                self.notifications.notify_success(f"Loaded {dropped_path.name}")
+                self.toast.success(f"Loaded {dropped_path.name}")
             except Exception as e:
                 self.status(f"Failed to load dropped file: {e}")
-                self.notifications.notify_error(f"Could not load {dropped_path.name}", details=str(e))
+                self.toast.error(f"Could not load {dropped_path.name}", details=str(e))
         else:
             self.status(f"Dropped file not found: {dropped_path.name}")
-            self.notifications.notify_error(f"File not found: {dropped_path.name}")
+            self.toast.error(f"File not found: {dropped_path.name}")
 
     # --------------------------------------------------------------------------------------
     # Search Filter (Optimized with debouncing)
