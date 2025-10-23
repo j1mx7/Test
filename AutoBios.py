@@ -55,48 +55,50 @@ else:
 SCEWIN_EXE_NAME = "SCEWIN_64.exe"
 SCEWIN_EXE_PATH = BASE_DIR / SCEWIN_EXE_NAME
 
-DEFAULT_NVRAM_NAME = "nvram.txt"
-DEFAULT_NVRAM_PATH = BASE_DIR / DEFAULT_NVRAM_NAME
-
-# --------------------------------------------------------------------------------------
-# Theme
+DEFAULT_NVRAM_NAME = "nvram.# --------------------------------------------------------------------------------------
+# Theme - Luxury Digital Interface
+# Apple Design meets Rolls-Royce minimalism
 # --------------------------------------------------------------------------------------
 THEME = {
-    # Core Background - Deep professional midnight
-    "bg":            "#0a0a12",      # Main background
-    "card":          "#12121c",      # Card surfaces
-    "card_hover":    "#18182a",      # Hover state
+    # Core Background - Subtle neutrals with premium feel
+    "bg":            "#f8f9fa",      # Off-white main background
+    "card":          "#ffffff",      # Pure white card surfaces
+    "card_hover":    "#fafbfc",      # Subtle hover state
     
-    # Surfaces - Consistent layers
-    "surface":       "#0e0e18",      # Secondary surface
-    "elevated":      "#161622",      # Elevated elements
+    # Surfaces - Layered elegance
+    "surface":       "#f1f3f4",      # Secondary surface
+    "elevated":      "#ffffff",      # Elevated elements
+    "surface_alt":   "#fafbfc",      # Alternative surface
     
-    # Text - Perfect contrast
-    "text":          "#e8e8f0",      # Primary text
-    "text_secondary":"#9898b0",      # Secondary text
-    "text_muted":    "#686888",      # Muted text
-    "muted":         "#686888",      # Muted (legacy)
+    # Text - Perfect contrast hierarchy
+    "text":          "#2c3e50",      # Primary text - dark graphite
+    "text_secondary":"#6c757d",      # Secondary text - medium gray
+    "text_muted":    "#adb5bd",      # Muted text - light gray
+    "muted":         "#adb5bd",      # Muted (legacy)
     
-    # Borders - Unified system
-    "border":        "#1e1e2c",      # Primary border
-    "border_subtle": "#28283c",      # Subtle divider
-    "grid":          "#1a1a28",      # Grid lines
+    # Borders - Thin, elegant outlines only
+    "border":        "#e9ecef",      # Primary border - subtle gray
+    "border_subtle": "#f1f3f4",      # Subtle divider - very light
+    "border_light":  "#f1f3f4",      # Light border
+    "grid":          "#f1f3f4",      # Grid lines - minimal
     
-    # Interactive - Consistent purple system
-    "accent":        "#5858ee",      # Main accent
-    "accent_hover":  "#6868ff",      # Hover state
-    "accent_dim":    "#4848cc",      # Pressed state
-    "accent_glow":   "rgba(88, 88, 238, 0.15)",  # Glow effect
+    # Interactive - Champagne gold accents
+    "accent":        "#d4af37",      # Main accent - champagne gold
+    "accent_hover":  "#e6c547",      # Hover state - lighter gold
+    "accent_dim":    "#b8941f",      # Pressed state - darker gold
+    "accent_light":  "#f4e4a6",      # Light gold background
+    "accent_glow":   "rgba(212, 175, 55, 0.15)",  # Subtle glow effect
     
-    # Input states
-    "input_bg":      "#0e0e18",      # Input background (for combo boxes)
-    "input_border":  "#2a2a3c",      # Input border
-    "input_focus":   "#5858ee",      # Focus state
-    "selection":     "#24243a",      # Selection bg
+    # Input states - Clean and minimal
+    "input_bg":      "#ffffff",      # Input background - pure white
+    "input_border":  "#e9ecef",      # Input border - subtle
+    "input_focus":   "#d4af37",      # Focus state - gold accent
+    "selection":     "#f4e4a6",      # Selection bg - light gold
     
-    # Status - Vibrant & clear
-    "success":       "#00dd88",      # Success green
-    "warn":          "#ffaa44",      # Warning gold (legacy)
+    # Status - Refined and professional
+    "success":       "#28a745",      # Success green - professional
+    "warn":          "#ffc107",      # Warning amber - elegant
+    "error":         "#dc3545",      # Error red - clean          "#ffaa44",      # Warning gold (legacy)
     "error":         "#ff4477",      # Error red
     
     # Switch
@@ -4106,16 +4108,14 @@ class PresetRow(QtWidgets.QWidget):
         self.lbl = QtWidgets.QLabel(name)
         self.lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.lbl.setStyleSheet(f"color: {THEME['text']}; font-size: 13px; font-weight: 400; letter-spacing: 0.1px; background: transparent; border: none; outline: none;")
-        self.lbl.setFocusPolicy(Qt.NoFocus)
-
-        self.sw = ToggleSwitch(self)
-        self.sw.setChecked(on)
-        self.sw.setFocusPolicy(Qt.NoFocus)
-        # precise binding
-        self.sw.toggled.connect(lambda state, n=name: self.toggled.emit(n, state))
-
-        lay.addWidget(self.lbl, 1)
-        lay.addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
+        self.lbl.setFoc        main_container.setStyleSheet(f"""
+            QWidget#mainContainer {{
+                background: {THEME['card']};
+                border-radius: 16px;
+                border: 1px solid {THEME['border']};
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            }}
+        """).addWidget(self.sw, 0, Qt.AlignRight | Qt.AlignVCenter)
         
         # Add subtle separator line with gradient effect (very subtle)
         separator = QtWidgets.QFrame()
@@ -4749,19 +4749,23 @@ class AutoBiosWindow(QtWidgets.QWidget):
 
         self._startup_fade = QtCore.QPropertyAnimation(opacity_effect, b"opacity")
         self._startup_fade.setDuration(280)  # Ultra-responsive
-        self._startup_fade.setStartValue(0.0)
-        self._startup_fade.setEndValue(1.0)
-        self._startup_fade.setEasingCurve(QtCore.QEasingCurve.OutExpo)  # Exponential for buttery smoothness
-        
-        # Cleanup effect after animation for optimal performance
-        self._startup_fade.finished.connect(lambda: self.setGraphicsEffect(None))
-        
-        QtCore.QTimer.singleShot(5, self._startup_fade.start)
+            return (
+            f"""
+            /* Global styles - Luxury Digital Interface */
+            * {{
+                font-size: 14px;
+                font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+                line-height: 1.6;
+            }}
 
-    def show_loading(self, text: str = "Processing...", show_progress: bool = False) -> None:
-        """Show loading overlay with optional progress bar"""
-        self.loading_text.setText(text)
-        self.loading_overlay.show()
+            /* Core widgets with perfect rounded corners - Luxury precision */
+            QWidget, QFrame, QGroupBox, QTabWidget::pane, QTabBar::tab,
+            QPushButton, QLineEdit, QComboBox, QListView, QTreeView, QTableView,
+            QScrollArea, QToolButton, QMenu, QDialog, QStatusBar {{
+                border-radius: 12px;
+            }}erlay.show()
         self.overlay_spinner.start()
         
         if show_progress:
@@ -4782,112 +4786,119 @@ class AutoBiosWindow(QtWidgets.QWidget):
     def update_progress(self, value: int, maximum: int = 100) -> None:
         """Update progress bar value"""
         self.progress_bar.setMaximum(maximum)
-        self.progress_bar.setValue(value)
-
-    def _navigate_presets(self, delta: int) -> None:
-            """Navigate between preset pages using a delta (-1 for left, +1 for right)."""
-            current_index = self.pages.currentIndex()
-            new_index = current_index + delta
-            # Clamp index between 0 and the number of pages - 1
-            new_index = max(0, min(self.pages.count() - 1, new_index))
-            
-            if new_index != current_index:
-                self.pages.setCurrentIndex(new_index)
-                # Reset scroll position to top when switching pages
-                self.scroll.verticalScrollBar().setValue(0)
-                QtCore.QTimer.singleShot(0, self.scrollContent.updateGeometry)
-                self._update_preset_nav_ui()
-
-    def _update_preset_nav_ui(self) -> None:
-            """Update the arrow buttons and title based on the current page."""
-            index = self.pages.currentIndex()
-            
-            # Update title and button enabled states
-            if index == 0:
-                self.lbl_page_title.setText("Basic Tuning")
-                self.btn_page_left.setEnabled(False)
-                self.btn_page_right.setEnabled(True)
-            else:  # index == 1
-                # Show current CPU family on Advanced page
-                family_name = "Intel" if self._preset_family == "intel" else "AMD"
-                self.lbl_page_title.setText(f"{family_name} Advanced")
-                self.btn_page_left.setEnabled(True)
-                self.btn_page_right.setEnabled(False)
-
-    # ---------- Style ----------
-    def _stylesheet(self) -> str:
-        t = THEME
-        # SCROLLBAR - ABSOLUTE FINAL ATTEMPT WITH MAXIMUM ROUNDING
-        scrollbars = f"""
-        QScrollBar:vertical {{
-            background: transparent;
-            width: 8px;
-            margin: 0px;
-        }}
-        QScrollBar::handle:vertical {{
-            background: {THEME['border_subtle']};
-            min-height: 40px;
-            border-radius: 6px;
-            margin: 2px;
-        }}
-        QScrollBar::handle:vertical:hover {{
-            background: {THEME['accent']};
-        }}
-        QScrollBar::handle:vertical:pressed {{
-            background: {THEME['accent_dim']};
-        }}
-        QScrollBar::sub-line:vertical, QScrollBar::add-line:vertical {{
-            border: none;
-            background: none;
-            height: 0px;
-        }}
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
-            background: none;
-        }}
-
-        QScrollBar:horizontal {{
-            background: transparent;
-            height: 8px;
-            margin: 0px;
-        }}
-        QScrollBar::handle:horizontal {{
-            background: {THEME['border_subtle']};
-            min-width: 40px;
-            border-radius: 6px;
-            margin: 2px;
-        }}
-        QScrollBar::handle:horizontal:hover {{
-            background: {THEME['accent']};
-        }}
-        QScrollBar::handle:horizontal:pressed {{
-            background: {THEME['accent_dim']};
-        }}
-        QScrollBar::sub-line:horizontal, QScrollBar::add-line:horizontal {{
-            border: none;
-            background: none;
-            width: 0px;
-        }}
-        QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
-            background: none;
-        }}
-        """
-
-        return (
-            f"""
-            /* Global styles - Unified system */
-            * {{
-                font-size: 13px;
-                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+                QLabel#title {{
+                font-size: 24px;
+                font-weight: 600;
+                color: {t['text']};
+                letter-spacing: -0.02em;
+                background: none !important;
+                border: none !important;
+                padding: 0px !important;
+                margin: 0px !important;
+            }}
+            QLabel#counts {{ 
+                color: {t['text_secondary']}; 
+                font-size: 12px; 
+                font-weight: 500;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }}                         /* Top tabs - Elegant with thin outlines */
+            QTabBar#topTabs {{ qproperty-drawBase:0; background:transparent; }}
+            QTabBar#topTabs::tab {{ 
+                background: transparent; 
+                color: {t['text_secondary']}; 
+                padding: 12px 24px; 
+                margin: 0 6px;
+                border: 1px solid {t['border']}; 
+                border-radius: 14px; 
+                font-weight: 500; 
+                font-size: 14px; 
+                letter-spacing: 0.01em;
+                transition: all 0.25s ease;
+            }}
+            QTabBar#topTabs::tab:hover {{ 
+                border-color: {t['accent']}; 
+                color: {t['text']};
+                background: {t['accent_light']};
+                transform: translateY(-1px);
+            }}
+            QTabBar#topTabs::tab:selected {{ 
+                background: {t['accent_light']}; 
+                color: {t['accent']}; 
+                border: 1px solid {t['accent']};
+                font-weight: 600;
+            }}xt(f"{family_name}             /* Search input - Luxury minimal design */
+            QLineEdit, QLineEdit#searchInput {{
+                background: {t['input_bg']};
+                border: 1px solid {t['border']};
+                border-radius: 14px;
+                padding: 14px 20px;
+                color: {t['text']};
+                font-size: 14px;
                 font-weight: 400;
-                letter-spacing: 0.2px;
+                letter-spacing: 0.01em;
+                selection-background-color: {t['selection']};
+                outline: none;
             }}
-
-            /* Core widgets with global radius - Apple-style */
-            QWidget, QFrame, QGroupBox, QTabWidget::pane, QTabBar::tab,
-            QPushButton, QLineEdit, QComboBox, QListView, QTreeView, QTableView,
-            QScrollArea, QToolButton, QMenu, QDialog, QStatusBar {{
-                border-radius: 10px;
+            QLineEdit:hover, QLineEdit#searchInput:hover {{
+                border-color: {t['accent']};
+                background: {t['surface_alt']};
+                outline: none;
             }}
+            QLineEdit:focus, QLineEdit#searchInput:focus {{
+                border: 2px solid {t['accent']};
+                background: {t['surface_alt']};
+                outline: none;
+            }}]};
+        }}
+        Q            /* Tables - Luxury precision with thin outlines */
+            QTableView#cardTable {{
+                background: transparent;
+                border: none;
+                border-radius: 0px;
+                selection-background-color: transparent;
+                selection-color: {t['text']};
+                gridline-color: transparent;
+                padding: 0px;
+                outline: none;
+                show-decoration-selected: 0;
+                alternate-background-color: transparent;
+            }}
+            QTableView#cardTable::item {{
+                padding: 18px 24px;
+                border: 0;
+                border-bottom: 1px solid {t['border_light']};
+                margin: 0px;
+                outline: none;
+                color: {t['text']};
+                font-size: 14px;
+                font-weight: 400;
+                letter-spacing: 0.01em;
+                min-height: 48px;
+            }}
+            QTableView#cardTable::item:selected {{
+                background: {t['selection']};
+                color: {t['text']};
+                outline: none;
+            }}
+            QTableView#cardTable::item:hover {{ 
+                background: {t['surface_alt']};
+                border-left: 3px solid {t['accent']};
+            }}
+            QTableView#cardTable::item:focus {{
+                outline: none;
+                border: none;
+            }}pple-system, BlinkMacSystemFont, Roboto, sa            QHeaderView::section {{ 
+                background: transparent; 
+                color: {t['text_muted']}; 
+                border: 0; 
+                border-right: none;
+                border-bottom: 1px solid {t['border_light']};
+                padding: 16px 24px 12px 24px; 
+                font-weight: 600; 
+                text-transform: uppercase; 
+                font-size: 10px; 
+                letter-spacing: 1.5px;       }}
             
             /* Subtle shadows - Clean minimal */
             QPushButton, QLineEdit, QFrame#sideOuter {{
