@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoBios - Luxury Digital Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    <span class="logo-text">AutoBios</span>
+                </div>
+                <nav class="nav">
+                    <button class="nav-item active">Dashboard</button>
+                    <button class="nav-item">Analysis</button>
+                    <button class="nav-item">Settings</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="section-title">Tools</h3>
+                    <div class="tool-list">
+                        <button class="tool-item">
+                            <div class="tool-icon"></div>
+                            <span class="tool-name">Data Processor</span>
+                        </button>
+                        <button class="tool-item">
+                            <div class="tool-icon"></div>
+                            <span class="tool-name">File Manager</span>
+                        </button>
+                        <button class="tool-item">
+                            <div class="tool-icon"></div>
+                            <span class="tool-name">System Monitor</span>
+                        </button>
+                        <button class="tool-item">
+                            <div class="tool-icon"></div>
+                            <span class="tool-name">Configuration</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="section-title">Recent</h3>
+                    <div class="recent-list">
+                        <div class="recent-item">
+                            <div class="recent-icon"></div>
+                            <div class="recent-info">
+                                <span class="recent-name">Project Alpha</span>
+                                <span class="recent-time">2 min ago</span>
+                            </div>
+                        </div>
+                        <div class="recent-item">
+                            <div class="recent-icon"></div>
+                            <div class="recent-info">
+                                <span class="recent-name">Data Export</span>
+                                <span class="recent-time">1 hour ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <div class="status-indicator online"></div>
+                        <span class="status-text">System Online</span>
+                    </div>
+                    <div class="status-right">
+                        <span class="status-time" id="current-time"></span>
+                    </div>
+                </div>
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard-grid">
+                    <div class="card primary">
+                        <div class="card-header">
+                            <h2 class="card-title">System Overview</h2>
+                            <button class="card-action">
+                                <div class="action-icon"></div>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-value">98.7%</span>
+                                <span class="metric-label">Efficiency</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 98.7%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Active Processes</h2>
+                            <button class="card-action">
+                                <div class="action-icon"></div>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="process-list">
+                                <div class="process-item">
+                                    <div class="process-dot"></div>
+                                    <span class="process-name">Data Analysis</span>
+                                    <span class="process-status">Running</span>
+                                </div>
+                                <div class="process-item">
+                                    <div class="process-dot"></div>
+                                    <span class="process-name">File Sync</span>
+                                    <span class="process-status">Idle</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Performance</h2>
+                            <button class="card-action">
+                                <div class="action-icon"></div>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="performance-chart">
+                                <div class="chart-line"></div>
+                                <div class="chart-points">
+                                    <div class="chart-point"></div>
+                                    <div class="chart-point"></div>
+                                    <div class="chart-point"></div>
+                                    <div class="chart-point"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Quick Actions</h2>
+                        </div>
+                        <div class="card-content">
+                            <div class="action-grid">
+                                <button class="action-button">
+                                    <div class="action-icon"></div>
+                                    <span>Start Process</span>
+                                </button>
+                                <button class="action-button">
+                                    <div class="action-icon"></div>
+                                    <span>Export Data</span>
+                                </button>
+                                <button class="action-button">
+                                    <div class="action-icon"></div>
+                                    <span>View Logs</span>
+                                </button>
+                                <button class="action-button">
+                                    <div class="action-icon"></div>
+                                    <span>Settings</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Control Center</h2>
+                        <div class="panel-actions">
+                            <button class="panel-button">
+                                <div class="button-icon"></div>
+                            </button>
+                            <button class="panel-button">
+                                <div class="button-icon"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="control-group">
+                            <label class="control-label">System Mode</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="system-mode" class="toggle-input">
+                                <label for="system-mode" class="toggle-label">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Auto Processing</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="auto-processing" class="toggle-input" checked>
+                                <label for="auto-processing" class="toggle-label">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
