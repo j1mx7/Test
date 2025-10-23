@@ -56,11 +56,11 @@ SCEWIN_EXE_NAME = "SCEWIN_64.exe"
 SCEWIN_EXE_PATH = BASE_DIR / SCEWIN_EXE_NAME
 
 DEFAULT_NVRAM_NAME = "nvram.txt"
-DEFAULT_NVRAM_PATH = BASE_DIR / DEFAULT_NVRAM_NAME
 
 # --------------------------------------------------------------------------------------
 # Theme
-# -------------------------THEME = {
+# --------------------------------------------------------------------------------------
+THEME = {
     # Core Background - Luxury off-white and champagne
     "bg":            "#fafafa",      # Main background - pristine off-white
     "card":          "#ffffff",      # Card surfaces - pure white
@@ -104,19 +104,13 @@ DEFAULT_NVRAM_PATH = BASE_DIR / DEFAULT_NVRAM_NAME
     "warn":          "#b8860b",      # Warning - sophisticated gold
     "warn_light":    "#fef9e7",      # Warning background
     "error":         "#8b0000",      # Error - deep burgundy
-    "error_light":   "#ffeaea",      # Error background
-    
-    # Switch - Elegant toggle design
-    "switch_off":    "#e0e0e0",      # Off state - subtle gray
-    "switch_on":     "#d4af37",      # On state - luxury gold
+    "error_light":   "#ffeaea",      # Er    "s    "switch_on":     "#d4af37",      # On state - luxury gold
     "switch_track":  "#f0f0f0",      # Switch track - champagne beige
     
     # Luxury gradients and effects
     "gradient_start": "#ffffff",     # Gradient start - pure white
-    "gradient_end":   "#f8f8f8",     # Gradient end - warm white
-    "glass_effect":   "rgba(255, 255, 255, 0.85)",  # Glass morphism
-}ch
-    "switch_off":    "#1e1e2c",      # Off state
+    "gra    "glass_effect":   "rgba(255, 255, 255, 0.85)",  # Glass morphism
+}f state
     "switch_on":     "#5858ee",      # On state
 }
 
